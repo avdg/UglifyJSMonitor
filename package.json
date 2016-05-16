@@ -1,0 +1,23 @@
+{
+  "name": "uglifyjs-monitor",
+  "version": "1.0.0",
+  "description": "0.1.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/avdg/UglifyJSMonitor.git"
+  },
+  "author": "Anthony Van de Gejuchte",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/avdg/UglifyJSMonitor/issues"
+  },
+  "homepage": "https://github.com/avdg/UglifyJSMonitor#readme",
+  "dependencies": {
+    "async": "^2.0.0-rc.4",
+    "yargs": "^4.7.0"
+  }
+}

@@ -19,6 +19,6 @@
   "dependencies": {
     "async": "^2.0.0-rc.4",
     "mocha": "^2.4.5",
-    "yargs": "^4.7.0"
+    "yargs": "^4.7.1"
   }
 }

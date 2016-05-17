@@ -26,12 +26,13 @@ var source;
 var issues = false;
 var unminifiedError = "";
 var sameError = false;
+var timeout = 60000;
 
 try {
     // Compress file
     minified = UglifyJS.minify(file).code;
     // Run the minified code to check if the script is still runable
-    vm.runInNewContext(minified, {});
+    vm.runInNewContext(minified, {}, {timeout: timeout});
 
 } catch(e) {
     // Make sure script runs fine without compiling as well
@@ -40,7 +41,7 @@ try {
 
     // Investigate if an error occurs unminified as well
     try {
-        vm.runInNewContext(source, {});
+        vm.runInNewContext(source, {}, {timeout: timeout});
         issues = false;
         unminifiedError += "Ran unminified without problems";
 

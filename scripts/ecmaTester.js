@@ -17,7 +17,7 @@ var options = {
 
 var fs = require("fs");
 var vm = require("vm");
-var UglifyJS = require("./build/UglifyJS/bin/node.js");
+var UglifyJS = require("../build/dependencies/UglifyJS2/tools/node");
 
 console.log("Using ", process.versions);
 

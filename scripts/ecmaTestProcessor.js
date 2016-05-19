@@ -58,11 +58,11 @@ var ARGS = yargs.usage(
     .boolean("es5")
 
     .wrap(80)
+    .help()
 
     .argv;
 
 if (ARGS.h || ARGS.help) {
-    console.log(yargs.help());
     process.exit(0);
 }
 
@@ -359,7 +359,8 @@ function printResult(obj, level) {
             // Add formatted link
             var test = obj.tests[j][0][1]
                 .replace(/\\/g, "\\\\")
-                .replace(/-/g, "\\-");
+                .replace(/-/g, "\\-")
+                .replace(/_/g, "\\_");
             var links = " [\\[test\\]](" + data.unitTestUrl +
                 obj.tests[j][0][1]
                 .split(" ")[0]

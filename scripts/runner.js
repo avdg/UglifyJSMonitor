@@ -1,4 +1,5 @@
 var childProcess = require("child_process");
+var fs = require("fs");
 var readline = require("readline");
 
 var git = require("nodegit");
@@ -7,10 +8,12 @@ var verify = require("../lib/verify");
 var settings = {
     repositories: {
         test262: {
-            path: "./build/dependencies/test262"
+            path: "./build/dependencies/test262",
+            origin: "https://github.com/mishoo/UglifyJS2.git"
         },
         uglify: {
-            path: "./build/dependencies/UglifyJS2"
+            path: "./build/dependencies/UglifyJS2",
+            origin: "https://github.com/tc39/test262.git"
         }
     },
     test262: {
@@ -80,26 +83,35 @@ function preCheck(settings, cb) {
         });
     };
 
-    var fetchRepoData = function(repoRef) {
+    var fetchRepoDataOrSetup = function(repoRef) {
         return function(cb, error) {
-            git.Repository.open(repoRef.path).then(function(repo) {
-                repo.getCurrentBranch().then(function(ref) {
-                    repoRef.branch = ref.shorthand();
-                    repo.getHeadCommit().then(function(commit) {
-                        repoRef.commit = commit.sha().substr(0, 10);
-                        repoRef.commit += " " + commit.date().toLocaleDateString();
-                        repoRef.commit += " " + (commit.summary() || "").substr(0, 30);
-                        cb();
+            var fetchData = function() {
+                git.Repository.open(repoRef.path).then(function(repo) {
+                    repo.getCurrentBranch().then(function(ref) {
+                        repoRef.branch = ref.shorthand();
+                        repo.getHeadCommit().then(function(commit) {
+                            repoRef.commit = commit.sha().substr(0, 10);
+                            repoRef.commit += " " + commit.date().toLocaleDateString();
+                            repoRef.commit += " " + (commit.summary() || "").substr(0, 30);
+                            cb();
+                        });
                     });
-                });
-            }, error);
+                }, error);
+            };
+            fs.exists(repoRef.path + "/.git", function(result) {
+                if (result) {
+                    fetchData();
+                } else {
+                    git.Clone.clone(repoRef.origin, repoRef.path).then(fetchData);
+                }
+            });
         };
     };
 
     Promise.all([
         new Promise(verifyPython),
-        new Promise(fetchRepoData(settings.repositories.test262)),
-        new Promise(fetchRepoData(settings.repositories.uglify))
+        new Promise(fetchRepoDataOrSetup(settings.repositories.test262)),
+        new Promise(fetchRepoDataOrSetup(settings.repositories.uglify))
     ]).then(function(result) {
         confirm();
     }, function(e) {

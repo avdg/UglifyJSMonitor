@@ -75,11 +75,11 @@ function config(settings, cb) {
                 break;
             case "2":
             case "test262":
-                changeBranch(settings.repositories.test262.repo, gotoMenu);
+                changeBranch(settings.repositories.test262, gotoMenu);
                 break;
             case "3":
             case "uglify":
-                changeBranch(settings.repositories.uglify.repo, gotoMenu);
+                changeBranch(settings.repositories.uglify, gotoMenu);
                 break;
             default:
                 config(settings, cb);
@@ -87,10 +87,11 @@ function config(settings, cb) {
     });
 }
 
-function changeBranch(repo, cb) {
+function changeBranch(repoRef, cb) {
     var filter = "refs/remotes/origin/";
     var exception = ["refs/remotes/origin/HEAD"];
     var headFilter = "refs/heads/";
+    var repo = repoRef.repo;
 
     repo.getReferenceNames(git.Reference.TYPE.LISTALL).then(function(refs) {
         var branches = [];
@@ -113,7 +114,7 @@ function changeBranch(repo, cb) {
 
             var branch = refs[i].substr(filter.length);
             branches.push(branch);
-            console.log("* " + branch);
+            console.log((repoRef.branch === branch ? ">": " ") + "* " + branch);
         }
 
         console.log("");
@@ -131,15 +132,13 @@ function changeBranch(repo, cb) {
                 console.log("Checking out " + answer);
 
                 if (existingBranches.indexOf(answer) !== -1) {
-                    repo.checkoutBranch(filter + answer, {}).then(cb, function(e) {
+                    repo.checkoutBranch(answer, {}).then(cb, function(e) {
                         console.log(e);
                     });
                 } else {
                     repo.getBranchCommit(filter + answer).then(function(commit) {
                         repo.createBranch(answer, commit, false).then(function() {
-                            repo.checkoutBranch(filter + answer, {}).then(cb, function(e) {
-                                console.log(e);
-                            }, function(e) {
+                            repo.checkoutBranch(answer, {}).then(cb, function(e) {
                                 console.log(e);
                             });
                         }, function(e) {
@@ -158,8 +157,6 @@ function changeBranch(repo, cb) {
                 changeBranch(repo, cb);
                 return;
             }
-
-            cb();
         });
     });
 }

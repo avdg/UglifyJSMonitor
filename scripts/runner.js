@@ -8,12 +8,16 @@ var verify = require("../lib/verify");
 var settings = {
     repositories: {
         test262: {
+            branch: undefined,
             path: "./build/dependencies/test262",
-            origin: "https://github.com/mishoo/UglifyJS2.git"
+            origin: "https://github.com/tc39/test262.git",
+            repo: undefined
         },
         uglify: {
+            branch: undefined,
             path: "./build/dependencies/UglifyJS2",
-            origin: "https://github.com/tc39/test262.git"
+            origin: "https://github.com/mishoo/UglifyJS2.git",
+            repo: undefined
         }
     },
     test262: {
@@ -34,6 +38,155 @@ function getReadline() {
     return readline.createInterface({
         input: process.stdin,
         output: process.stdout
+    });
+}
+
+function config(settings, cb) {
+    if (typeof cb !== "function") {
+        cb = function() {};
+    }
+
+    console.log("These actions are available:");
+    console.log("");
+    console.log("1) [fetch]   Fetch and merge dependencies to the freshest checkout");
+    console.log("2) [test262] Change branch for test262");
+    console.log("3) [uglify]  Change branch for uglify");
+    console.log("");
+    console.log("0) [exit]    Go back");
+    console.log("");
+
+    rl = getReadline();
+    rl.question("Number or command or ctrl + c (to exit)\n", function(answer) {
+        rl.close();
+        console.log("");
+
+        gotoMenu = function() {
+            config(settings, cb);
+        };
+
+        switch(answer) {
+            case "0":
+            case "exit":
+                preCheck(settings, cb);
+                break;
+            case "1":
+            case "fetch":
+                fetch(settings, gotoMenu);
+                break;
+            case "2":
+            case "test262":
+                changeBranch(settings.repositories.test262.repo, gotoMenu);
+                break;
+            case "3":
+            case "uglify":
+                changeBranch(settings.repositories.uglify.repo, gotoMenu);
+                break;
+            default:
+                config(settings, cb);
+        }
+    });
+}
+
+function changeBranch(repo, cb) {
+    var filter = "refs/remotes/origin/";
+    var exception = ["refs/remotes/origin/HEAD"];
+    var headFilter = "refs/heads/";
+
+    repo.getReferenceNames(git.Reference.TYPE.LISTALL).then(function(refs) {
+        var branches = [];
+        var existingBranches = [];
+
+        console.log("Branches for " + repo.workdir());
+
+        for (var i = 0; i < refs.length; i++) {
+            if (refs[i].substr(0, filter.length) !== filter) {
+                if (refs[i].substr(0, headFilter.length) === headFilter) {
+                    existingBranches.push(refs[i].substr(headFilter.length));
+                }
+
+                continue;
+            }
+
+            if (exception.indexOf(refs[i]) !== -1) {
+                continue;
+            }
+
+            var branch = refs[i].substr(filter.length);
+            branches.push(branch);
+            console.log("* " + branch);
+        }
+
+        console.log("");
+
+        rl = getReadline();
+        rl.question("Type a branch to pick it, press enter to leave menu\n", function(answer) {
+            rl.close();
+            console.log("");
+
+            if (answer.trim() === "") {
+                cb();
+            }
+
+            if (branches.indexOf(answer) !== -1) {
+                console.log("Checking out " + answer);
+
+                if (existingBranches.indexOf(answer) !== -1) {
+                    repo.checkoutBranch(filter + answer, {}).then(cb, function(e) {
+                        console.log(e);
+                    });
+                } else {
+                    repo.getBranchCommit(filter + answer).then(function(commit) {
+                        repo.createBranch(answer, commit, false).then(function() {
+                            repo.checkoutBranch(filter + answer, {}).then(cb, function(e) {
+                                console.log(e);
+                            }, function(e) {
+                                console.log(e);
+                            });
+                        }, function(e) {
+                            console.log(e);
+                        });
+                    }, function(e) {
+                        console.log(e);
+                    });
+                }
+
+                return;
+
+            } else {
+                console.log("Branch not found");
+                console.log("");
+                changeBranch(repo, cb);
+                return;
+            }
+
+            cb();
+        });
+    });
+}
+
+function fetch(settings, cb) {
+    var fetchAndFastForward = function(repoObj) {
+        return function(cbFetch) {
+            repoObj.repo.fetch("origin", {}).then(function() {
+                repoObj.repo.mergeBranches(repoObj.branch, "remotes/origin/" + repoObj.branch, undefined, git.Merge.PREFERENCE.FASTFORWARD_ONLY).then(function(oid) {
+                    console.log("Done merging " + repoObj.path + " to " + oid);
+                    cbFetch();
+                }, function(e) {
+                    console.log(repoObj.repo.workdir());
+                    console.log(e);
+                });
+            }, function(e) {
+                console.log(repoObj.repo.workdir());
+                console.log(e);
+            });
+        };
+    };
+    Promise.all([
+        new Promise(fetchAndFastForward(settings.repositories.test262)),
+        new Promise(fetchAndFastForward(settings.repositories.uglify))
+    ]).then(function() {
+        console.log("");
+        cb();
     });
 }
 
@@ -66,9 +219,15 @@ function preCheck(settings, cb) {
         console.log("");
 
         rl = getReadline();
-        rl.question("Press enter to confirm (or press ctrl + c)\n", function(answer) {
-            cb();
+        rl.question("Press enter to continue, 'config' to change settings or press ctrl + c to exit\n", function(answer) {
             rl.close();
+            console.log("");
+
+            if (answer === "config") {
+                config(settings, cb);
+            } else {
+                cb();
+            }
         });
     };
 
@@ -87,6 +246,7 @@ function preCheck(settings, cb) {
         return function(cb, error) {
             var fetchData = function() {
                 git.Repository.open(repoRef.path).then(function(repo) {
+                    repoRef.repo = repo;
                     repo.getCurrentBranch().then(function(ref) {
                         repoRef.branch = ref.shorthand();
                         repo.getHeadCommit().then(function(commit) {

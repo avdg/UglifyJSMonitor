@@ -4,3 +4,15 @@
 
 # UglifyJSMonitor
 Prototyping automated UglifyJS Monitor tools
+
+## Test262 runner tool
+
+- Run `node .` to run index.js
+- All dependencies are set up on the background (but not updated)
+- On menu `Press enter to continue, 'config' to change settings or press ctrl + c to exit`
+  - Press enter runs the tests with the listed settings
+  - You can type `config` and press enter to change some settings
+    - [ ] Make sure all branches are correct
+    - [ ] Make sure to fetch all branches after setting them correct
+- Running the tests takes a lot of times, let it run on the background for a few hours (at least 2-3 hours)
+- Logs can be found in `build/logs/`, logs are not used by the program once processed.

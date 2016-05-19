@@ -126,6 +126,7 @@ function changeBranch(repoRef, cb) {
 
             if (answer.trim() === "") {
                 cb();
+                return;
             }
 
             if (branches.indexOf(answer) !== -1) {

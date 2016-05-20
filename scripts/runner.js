@@ -9,13 +9,13 @@ var settings = {
     repositories: {
         test262: {
             branch: undefined,
-            path: "./build/dependencies/test262",
+            path: "build/dependencies/test262",
             origin: "https://github.com/tc39/test262.git",
             repo: undefined
         },
         uglify: {
             branch: undefined,
-            path: "./build/dependencies/UglifyJS2",
+            path: "build/dependencies/UglifyJS2",
             origin: "https://github.com/mishoo/UglifyJS2.git",
             repo: undefined
         }
@@ -197,7 +197,7 @@ function preCheck(settings, cb) {
         if (settings.test262.logfile === "build/logs/default.log") {
             var date = new Date();
             settings.test262.logfile = "build/logs/" + (settings.repositories.uglify.branch || "uglify") +
-                "." + date.getDay()  + "." + date.getMonth() + "." + date.getFullYear() + ".log";
+                "." + date.getDate()  + "." + date.getMonth() + "." + date.getFullYear() + ".log";
         }
 
         console.log("Pre-run checklist: (press ctrl+c to abort program at any moment)");

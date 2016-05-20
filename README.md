@@ -5,7 +5,14 @@
 # UglifyJSMonitor
 Prototyping automated UglifyJS Monitor tools
 
+## Requirements
+- nodejs (development done on node 6, might work on few earlier versions)
+- npm (mostly installed together with nodejs)
+- python 2.7
+- A c/c++ compiler that can keep npm happy
+
 ## Test262 runner tool
+> Make sure npm install is run after downloading UglifyJSMonitor
 
 - Run `node .` to run index.js
 - All dependencies are set up on the background (but not updated)

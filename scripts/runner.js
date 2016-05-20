@@ -266,12 +266,29 @@ function preCheck(settings, cb) {
         };
     };
 
+    var setupNpm = function(repoRef, cbNpm) {
+        var cmd = /^win/.test(process.platform) ? "npm.cmd" : "npm";
+        var child = childProcess.spawn(cmd, ["install"], {
+            env: process.env,
+            cwd: repoRef.path
+        });
+
+        child.on("exit", function() {
+            cbNpm();
+        });
+
+        child.on("error", function(e) {
+            console.log(e);
+            process.exit();
+        });
+    };
+
     Promise.all([
         new Promise(verifyPython),
         new Promise(fetchRepoDataOrSetup(settings.repositories.test262)),
         new Promise(fetchRepoDataOrSetup(settings.repositories.uglify))
     ]).then(function(result) {
-        confirm();
+        setupNpm(settings.repositories.uglify, confirm);
     }, function(e) {
         console.log(e);
         process.exit();

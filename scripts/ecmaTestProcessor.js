@@ -77,6 +77,8 @@ var getUsefullErrors = function(errors) {
                     results.push(tmp[j].substr(pos, k - pos));
                 }
             }
+        } else if (/^SyntaxError: /.test(errors[i]) && results.indexOf(errors[i]) === -1) {
+            results.push(errors[i]);
         }
     }
 

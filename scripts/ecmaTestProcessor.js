@@ -41,6 +41,48 @@ var isUglifyOnlyError = function(summary, output) {
     return false;
 };
 
+var getUsefullErrors = function(errors) {
+    var results = [];
+
+    for (var i = 0; i < errors.length; i++) {
+        if (/Error:\s+Test262Error\s+\{/.test(errors[i])) {
+            var tmp = [];
+            while (i < errors.length) {
+                tmp.push(errors[i]);
+
+                if (/\}\s*$/.test(errors[i])) {
+                    break;
+                }
+
+                i++;
+            }
+
+            for (var j = 0; j < tmp.length; j++) {
+                var filter = "message: ";
+                var pos = tmp[j].indexOf(filter);
+
+                if (pos !== -1) {
+                    pos += filter.length;
+                    var quote = tmp[j][pos++];
+                    var k = pos;
+                    for (; k < tmp[j].length; k++) {
+                        if (tmp[j][k] === "\\") {
+                            k++; continue;
+                        }
+                        if (tmp[j][k] === quote) {
+                            break;
+                        }
+                    }
+
+                    results.push(tmp[j].substr(pos, k - pos));
+                }
+            }
+        }
+    }
+
+    return results;
+};
+
 var ARGS = yargs.usage(
         "$0 logs.txt -o output.md\n\n" +
         "Processes test262 logs and convert it to more human readable markup files.\n"
@@ -332,6 +374,7 @@ function printResult(obj, level) {
 
     var fails = "";
     for (var j in obj.tests) {
+        var errors = [];
         var node_error_count = 0;
         var self_error_count = 0;
         var fail_count = 0;
@@ -350,6 +393,7 @@ function printResult(obj, level) {
             if (obj.tests[j][k][2].self_error) {
                 self_error_count++;
             }
+            errors = errors.concat(getUsefullErrors(obj.tests[j][k][2].logs));
         }
 
         if (fail_count > 0) {
@@ -378,6 +422,11 @@ function printResult(obj, level) {
             // Add error summary
             fails += prefix + "- *" + error_style + test + error_style + "*" +
                 links + cause + counter + "\n";
+
+            // Print errors
+            for (var l = 0; l < errors.length; l++) {
+                fails += prefix + "  - ` " + errors[l].replace(/`/g, "``") + " `\n";
+            }
         }
     }
 

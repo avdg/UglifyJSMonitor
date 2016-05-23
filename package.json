@@ -18,7 +18,7 @@
   "homepage": "https://github.com/avdg/UglifyJSMonitor#readme",
   "dependencies": {
     "async": "^2.0.0-rc.4",
-    "mocha": "^2.4.5",
+    "mocha": "^2.5.1",
     "nodegit": "^0.13.0",
     "yargs": "^4.7.1"
   }

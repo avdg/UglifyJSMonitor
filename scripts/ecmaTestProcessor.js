@@ -47,6 +47,14 @@ var getUsefullErrors = function(errors) {
     for (var i = 0; i < errors.length; i++) {
         if (/Error:\s+(Test262Error|JS_Parse_Error)\s+\{/.test(errors[i])) {
             var tmp = [];
+
+            var prefix = "";
+            if (errors[i].indexOf("Test262Error") !== -1) {
+                prefix = "Test262Error: ";
+            } else if (errors[i].indexOf("JS_Parse_Error") !== -1) {
+                prefix = "JS_Parse_Error: ";
+            }
+
             while (i < errors.length) {
                 tmp.push(errors[i]);
 
@@ -63,28 +71,38 @@ var getUsefullErrors = function(errors) {
 
                 if (pos !== -1) {
                     pos += filter.length;
-                    var quote = tmp[j][pos++];
+                    var quote = tmp[j][pos];
                     var k = pos;
-                    for (; k < tmp[j].length; k++) {
-                        if (tmp[j][k] === "\\") {
-                            k++; continue;
+                    if (quote === '"' || quote === "'") {
+                        k++;pos++;
+                        for (; k < tmp[j].length; k++) {
+                            if (tmp[j][k] === "\\") {
+                                k++; continue;
+                            }
+                            if (tmp[j][k] === quote) {
+                                break;
+                            }
                         }
-                        if (tmp[j][k] === quote) {
-                            break;
+                    } else {
+                        k = tmp[j].indexOf(",");
+                        k = k === -1 ? tmp[j].indexOf("}") : k;
+                        if (k === -1) {
+                            k = tmp[j].length - 1;
                         }
                     }
 
-                    results.push(tmp[j].substr(pos, k - pos));
+                    results.push(prefix + tmp[j].substr(pos, k - pos));
                 }
             }
-        } else if (/^SyntaxError: /.test(errors[i]) && results.indexOf(errors[i]) === -1) {
-            results.push(errors[i]);
-        } else if (/^TypeError: /.test(errors[i]) && results.indexOf(errors[i]) === -1) {
-            results.push(errors[i]);
-        } else if (/^ReferenceError: /.test(errors[i]) && results.indexOf(errors[i]) === -1) {
-            results.push(errors[i]);
-        } else if (/^RangeError: /.test(errors[i]) && results.indexOf(errors[i]) === -1) {
-            results.push(errors[i]);
+        } else if (/^(Error:\s+)?(Syntax|Type|Reference|Range)Error: /.test(errors[i])) {
+            var temp = errors[i];
+            if (temp.indexOf("Error: ") === 0) {
+                temp = temp.substr(6).trim();
+            }
+
+            if (results.indexOf(temp) === -1) {
+                results.push(temp);
+            }
         }
     }
 

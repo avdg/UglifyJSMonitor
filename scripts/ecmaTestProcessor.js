@@ -435,7 +435,7 @@ function printResult(obj, level) {
                 links + cause + counter + "\n";
 
             // Print errors
-            if (ARGS.a || self_error_count > 0) {
+            if (ARGS.a || self_error_count > 0 || node_error_count === 0) {
                 for (var l = 0; l < errors.length; l++) {
                     fails += prefix + "  - ` " + errors[l].replace(/`/g, "``") + " `\n";
                 }

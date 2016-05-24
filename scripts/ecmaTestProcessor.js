@@ -45,7 +45,7 @@ var getUsefullErrors = function(errors) {
     var results = [];
 
     for (var i = 0; i < errors.length; i++) {
-        if (/Error:\s+Test262Error\s+\{/.test(errors[i])) {
+        if (/Error:\s+(Test262Error|JS_Parse_Error)\s+\{/.test(errors[i])) {
             var tmp = [];
             while (i < errors.length) {
                 tmp.push(errors[i]);

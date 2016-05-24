@@ -97,6 +97,7 @@ var ARGS = yargs.usage(
     )
     .describe("h", "Get help")
     .describe("o", "Output file")
+    .describe("a", "Get all errors, not only those cause by uglify")
 
     .describe("debug",       "Prints out very large json debug file")
     .describe("debugFormat", "Prints out structure of json debug file")
@@ -104,8 +105,10 @@ var ARGS = yargs.usage(
 
     .alias("h", "help")
     .alias("o", "output")
+    .alias("a", "all")
 
     .boolean("es5")
+    .boolean("a")
 
     .wrap(80)
     .help()
@@ -432,8 +435,10 @@ function printResult(obj, level) {
                 links + cause + counter + "\n";
 
             // Print errors
-            for (var l = 0; l < errors.length; l++) {
-                fails += prefix + "  - ` " + errors[l].replace(/`/g, "``") + " `\n";
+            if (ARGS.a || self_error_count > 0) {
+                for (var l = 0; l < errors.length; l++) {
+                    fails += prefix + "  - ` " + errors[l].replace(/`/g, "``") + " `\n";
+                }
             }
         }
     }

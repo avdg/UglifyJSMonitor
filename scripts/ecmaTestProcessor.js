@@ -79,6 +79,12 @@ var getUsefullErrors = function(errors) {
             }
         } else if (/^SyntaxError: /.test(errors[i]) && results.indexOf(errors[i]) === -1) {
             results.push(errors[i]);
+        } else if (/^TypeError: /.test(errors[i]) && results.indexOf(errors[i]) === -1) {
+            results.push(errors[i]);
+        } else if (/^ReferenceError: /.test(errors[i]) && results.indexOf(errors[i]) === -1) {
+            results.push(errors[i]);
+        } else if (/^RangeError: /.test(errors[i]) && results.indexOf(errors[i]) === -1) {
+            results.push(errors[i]);
         }
     }
 

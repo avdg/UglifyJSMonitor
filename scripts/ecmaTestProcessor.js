@@ -24,6 +24,42 @@ var roundToPercentage = function(input) {
     return Math.round(input * 10000) / 100;
 };
 
+var getKeyValueFromObject = function(logs, key) {
+    var filter = key + ": ";
+    var results = [];
+
+    for (var i = 0; i < logs.length; i++) {
+        var pos = logs[i].indexOf(filter);
+        if (pos !== -1) {
+            pos += filter.length;
+            var quote = logs[i][pos];
+            var j = pos;
+            if (quote === '"' || quote === "'") {
+                j++;pos++;
+                for (; j < logs[i].length; j++) {
+                    if (logs[i][j] === "\\") {
+                        j++; continue;
+                    }
+                    if (logs[i][j] === quote) {
+                        break;
+                    }
+                }
+            } else {
+                // Parse undefined, null, number, etc
+                j = logs[i].indexOf(",");
+                j = j === -1 ? logs[i].indexOf("}") : j;
+                if (j === -1) {
+                    j = logs[i].length - 1;
+                }
+            }
+
+            results.push(logs[i].substr(pos, j - pos));
+        }
+    }
+
+    return results;
+};
+
 var isNodeOnlyError = function(summary, output) {
     // Errors caused when failing both running minified and unminified are very likely node caused
     if (output.filter(BOTH_ERROR_FILTER).length > 0) {
@@ -46,7 +82,7 @@ var getUsefullErrors = function(errors) {
 
     for (var i = 0; i < errors.length; i++) {
         if (/Error:\s+(Test262Error|JS_Parse_Error)\s+\{/.test(errors[i])) {
-            var tmp = [];
+            var objectLogs = [];
 
             var prefix = "";
             if (errors[i].indexOf("Test262Error") !== -1) {
@@ -56,7 +92,7 @@ var getUsefullErrors = function(errors) {
             }
 
             while (i < errors.length) {
-                tmp.push(errors[i]);
+                objectLogs.push(errors[i]);
 
                 if (/\}\s*$/.test(errors[i])) {
                     break;
@@ -65,34 +101,9 @@ var getUsefullErrors = function(errors) {
                 i++;
             }
 
-            for (var j = 0; j < tmp.length; j++) {
-                var filter = "message: ";
-                var pos = tmp[j].indexOf(filter);
-
-                if (pos !== -1) {
-                    pos += filter.length;
-                    var quote = tmp[j][pos];
-                    var k = pos;
-                    if (quote === '"' || quote === "'") {
-                        k++;pos++;
-                        for (; k < tmp[j].length; k++) {
-                            if (tmp[j][k] === "\\") {
-                                k++; continue;
-                            }
-                            if (tmp[j][k] === quote) {
-                                break;
-                            }
-                        }
-                    } else {
-                        k = tmp[j].indexOf(",");
-                        k = k === -1 ? tmp[j].indexOf("}") : k;
-                        if (k === -1) {
-                            k = tmp[j].length - 1;
-                        }
-                    }
-
-                    results.push(prefix + tmp[j].substr(pos, k - pos));
-                }
+            var keys = getKeyValueFromObject(objectLogs, "message");
+            for (var j = 0; j < keys.length; j++) {
+                results.push(prefix + keys[i]);
             }
         } else if (/^(Error:\s+)?(Syntax|Type|Reference|Range)Error: /.test(errors[i])) {
             var temp = errors[i];

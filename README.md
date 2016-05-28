@@ -34,8 +34,8 @@ In case there is an error, it will run the unminified code as well.
 This is done to fetch additional data and to make sure to determine if the
 script should have been executed successfully.
 
-It's expecting as parameter a path to the test. And is for the time being not
-configurable without changing the code.
+It's expecting as parameter a path to the test (like `ecmaTester foo.js`).
+And is for the time being not configurable without changing the code.
 
 Note that the tool doesn't know if the test is expected to fail.
 

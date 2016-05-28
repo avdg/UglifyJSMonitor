@@ -200,6 +200,7 @@ function preCheck(settings, cb) {
                 "." + date.getDate()  + "." + date.getMonth() + "." + date.getFullYear() + ".log";
         }
 
+        console.log("");
         console.log("Pre-run checklist: (press ctrl+c to abort program at any moment)");
         console.log("");
         console.log(" === Versions ===");
@@ -283,11 +284,13 @@ function preCheck(settings, cb) {
         });
     };
 
+    console.log("Checking for non-existing dependencies...")
     Promise.all([
         new Promise(verifyPython),
         new Promise(fetchRepoDataOrSetup(settings.repositories.test262)),
         new Promise(fetchRepoDataOrSetup(settings.repositories.uglify))
     ]).then(function(result) {
+        console.log("Checking npm...");
         setupNpm(settings.repositories.uglify, confirm);
     }, function(e) {
         console.log(e);
@@ -321,26 +324,25 @@ function run(settings, cb) {
     );
 
 
-    if (settings.readline) {
-        rl = getReadline();
-        rl.write('Loading tests!');
+    if (settings.readline && process.stdout.isTTY) {
+        process.stdout.write('Loading tests!');
         child.stdout.on("data", function(data) {
             // Buffer cache is always 2 lines, in case the last line is incomplete
             cache += data;
             cache = cache.split(/\r?\n/);
-            cache = cache.splice(0, cache.length - 2);
+            cache = cache.splice(cache.length - 2);
 
-            rl.write(null, {ctrl: true, name: 'u'});
-            rl.write(cache[0].substr(0, 80));
+            process.stdout.cursorTo(0);
+            process.stdout.write(cache[0].substr(0, 80));
+            process.stdout.clearLine(1);
 
             cache = cache.join("\n");
         });
     }
 
     child.on("exit", function() {
-        if (rl) {
-            rl.close();
-            console.log("\n");
+        if (settings.readline && process.stdout.isTTY) {
+            process.stdout.log("\n");
         }
 
         cb();

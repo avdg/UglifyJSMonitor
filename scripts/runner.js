@@ -342,7 +342,7 @@ function run(settings, cb) {
 
     child.on("exit", function() {
         if (settings.readline && process.stdout.isTTY) {
-            process.stdout.log("\n");
+            process.stdout.write("\n");
         }
 
         cb();

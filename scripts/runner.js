@@ -23,7 +23,7 @@ var settings = {
     test262: {
         args: "",
         logfile: "build/logs/default.log",
-        runner: "node scripts/ecmaTester"
+        runner: "node scripts/ecmaTester" // todo allow configuring commands
     },
     processor: {
         command: "node",
@@ -51,6 +51,7 @@ function config(settings, cb) {
     console.log("1) [fetch]   Fetch and merge dependencies to the freshest checkout");
     console.log("2) [test262] Change branch for test262");
     console.log("3) [uglify]  Change branch for uglify");
+    console.log("4) [runner]  Change runner command");
     console.log("");
     console.log("0) [exit]    Go back");
     console.log("");
@@ -81,6 +82,18 @@ function config(settings, cb) {
             case "uglify":
                 changeBranch(settings.repositories.uglify, gotoMenu);
                 break;
+            case "4":
+            case "runner":
+                console.log("Current runner set at:");
+                console.log(settings.test262.runner);
+                console.log("");
+                rl = getReadline();
+                rl.question("Number or command or ctrl + c (to exit)\n", function(answer) {
+                    rl.close();
+                    // TODO process answer
+                    gotoMenu();
+                });
+                break; // TODO test
             default:
                 config(settings, cb);
         }

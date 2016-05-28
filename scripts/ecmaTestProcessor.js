@@ -191,8 +191,8 @@ var data;
 // Read files
 async.mapLimit(ARGS._, 1, function(file, callback) {
     var content = fs.readFileSync(file, {
-      encoding: 'utf8'
-  }).split(/ *\r?\n/);
+        encoding: 'utf8'
+    }).split(/ *\r?\n/);
 
     var output = [];
     var errors = 0;

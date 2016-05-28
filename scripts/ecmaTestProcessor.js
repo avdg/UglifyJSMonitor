@@ -230,7 +230,7 @@ async.mapLimit(ARGS._, 1, function(file, callback) {
                     i++;
 
                     if (i >= content.length) {
-                        console.log("Overflow detected, caused by line " + tmp);
+                        console.log("Overflow detected, caused by line " + (tmp + 1));
                         console.log(i + " " + content.length);
                         console.log(content[tmp]);
                         process.exit(1);

@@ -103,7 +103,7 @@ var getUsefullErrors = function(errors) {
 
             var keys = getKeyValueFromObject(objectLogs, "message");
             for (var j = 0; j < keys.length; j++) {
-                results.push(prefix + keys[i]);
+                results.push(prefix + keys[j]);
             }
         } else if (/^(Error:\s+)?(Syntax|Type|Reference|Range)Error: /.test(errors[i])) {
             var temp = errors[i];

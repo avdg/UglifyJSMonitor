@@ -290,7 +290,7 @@ function preCheck(settings, cb) {
         new Promise(fetchRepoDataOrSetup(settings.repositories.test262)),
         new Promise(fetchRepoDataOrSetup(settings.repositories.uglify))
     ]).then(function(result) {
-        console.log("Checking npm...");
+        console.log("Checking npm on dependencies...");
         setupNpm(settings.repositories.uglify, confirm);
     }, function(e) {
         console.log(e);
@@ -333,7 +333,7 @@ function run(settings, cb) {
             cache = cache.splice(cache.length - 2);
 
             process.stdout.cursorTo(0);
-            process.stdout.write(cache[0].substr(0, 80));
+            process.stdout.write(cache[0].substr(0, process.stdout.columns - 1));
             process.stdout.clearLine(1);
 
             cache = cache.join("\n");

@@ -172,11 +172,6 @@ let fetchGrammar = function(html) {
                 }
             }
         }
-        // if (results.length > 1) {
-        //     console.log(def + " has " + results.length + " results");
-        //     console.log(results);
-        //     // if (def === "IdentifierReference") console.log(arr);
-        // }
 
         return results;
     };
@@ -188,11 +183,6 @@ let fetchGrammar = function(html) {
         definitions[i].rules = p(definitions[i].definition, definitions[i].rules);
     }
 
-    // console.log(definitions.length);
-    // console.log(definitions[0]);
-    // console.log("-----");
-    // console.log(grammarRules[0].children[0].data);
-    // console.log("done");
     return definitions;
 };
 

@@ -321,7 +321,9 @@ input[type='checkbox'] {
 .sec-regular-expressions b {
     color: #44cc44;
 }
-</style></head><body>
+</style>
+<link rel="icon" href="es-favicon.ico" type="image/x-icon"/>
+</head><body>
 <div id="selector" class="multi-col no-print">
 <h2>Ecmascript 6 language grammar as of ${new Date().getDate()}/${new Date().getMonth()+1}/${new Date().getFullYear()}</h2>
 <input type="checkbox" id="select-lexical-grammar" checked><a href="#">Lexical grammar</a><br>
@@ -366,6 +368,9 @@ fetchSpec().then(function(content) {
 
     try {
         let grammar = fetchGrammar(html);
+        let favicon_in  = fs.createReadStream(__dirname + "/../res/es-favicon.ico");
+        let favicon_out = fs.createWriteStream(SPEC_CACHE + "es-favicon.ico");
+        favicon_in.pipe(favicon_out);
         fs.writeFileSync(SPEC_CACHE + "output.html", htmlGen(grammar));
     } catch (e) {
         console.log(e);

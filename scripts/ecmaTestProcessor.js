@@ -11,7 +11,7 @@ var OK = 0;
 var FAIL = 1;
 
 var MESSAGE = /^(=== )?[^\s]* (passed|failed|was expected to fail) in (non-)?strict mode( as expected|, but didn't)?( ===)?$/;
-var SELF_ERROR = /A minified script failed to run after being minified\. Please report node version, test and error to the maintainer of the minifier tool\./;
+var SELF_ERROR = /A minified script failed to run after being minified\. Please report node version, test and error to the maintainer of the minifier tool\.|at new JS_Parse_Error/;
 var BOTH_ERROR = /A minified script failed to run both minified and unminified\. This is likely an invalid js file/;
 var SELF_ERROR_FILTER = function(input) {
     return SELF_ERROR.test(input);
@@ -77,6 +77,7 @@ var isUglifyOnlyError = function(summary, output) {
     return false;
 };
 
+// Input: <Array> Lines from error log specific to 1 test
 var getUsefullErrors = function(errors) {
     var results = [];
 
@@ -114,6 +115,10 @@ var getUsefullErrors = function(errors) {
             if (results.indexOf(temp) === -1) {
                 results.push(temp);
             }
+        } else if (/^Error$/.test(errors[i]) && /^    at /.test(errors[i + 1]) && (
+            /^ Parse error at /.test(errors[i - 2])
+        )) {
+            results.push(errors[i - 1]);
         }
     }
 

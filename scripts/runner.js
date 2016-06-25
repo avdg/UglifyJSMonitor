@@ -23,7 +23,7 @@ var settings = {
     test262: {
         args: "",
         logfile: "build/logs/default.log",
-        runner: "node scripts/ecmaTester" // todo allow configuring commands
+        runner: "node --harmony scripts/ecmaTester" // todo allow configuring commands
     },
     processor: {
         command: "node",
@@ -210,7 +210,7 @@ function preCheck(settings, cb) {
         if (settings.test262.logfile === "build/logs/default.log") {
             var date = new Date();
             settings.test262.logfile = "build/logs/" + (settings.repositories.uglify.branch || "uglify") +
-                "." + date.getDate()  + "." + date.getMonth() + "." + date.getFullYear() + ".log";
+                "." + date.getDate()  + "." + (date.getMonth() + 1) + "." + date.getFullYear() + ".log";
         }
 
         console.log("");

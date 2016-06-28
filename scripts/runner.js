@@ -72,7 +72,7 @@ function config(settings, cb) {
                 break;
             case "1":
             case "fetch":
-                fetch(settings, gotoMenu);
+                fetch(settings).then(gotoMenu);
                 break;
             case "2":
             case "test262":
@@ -175,7 +175,7 @@ function changeBranch(repoRef, cb) {
     });
 }
 
-function fetch(settings, cb) {
+function fetch(settings) {
     var fetchAndFastForward = function(repoObj) {
         return function(cbFetch) {
             repoObj.repo.fetch("origin", {}).then(function() {
@@ -192,12 +192,12 @@ function fetch(settings, cb) {
             });
         };
     };
-    Promise.all([
+    return Promise.all([
         new Promise(fetchAndFastForward(settings.repositories.test262)),
         new Promise(fetchAndFastForward(settings.repositories.uglify))
     ]).then(function() {
         console.log("");
-        cb();
+        return;
     });
 }
 
@@ -298,11 +298,11 @@ function preCheck(settings, cb) {
     };
 
     console.log("Checking for non-existing dependencies...")
-    Promise.all([
+    return Promise.all([
         new Promise(verifyPython),
         new Promise(fetchRepoDataOrSetup(settings.repositories.test262)),
         new Promise(fetchRepoDataOrSetup(settings.repositories.uglify))
-    ]).then(function(result) {
+    ]).then(function() {
         console.log("Checking npm on dependencies...");
         setupNpm(settings.repositories.uglify, confirm);
     }, function(e) {

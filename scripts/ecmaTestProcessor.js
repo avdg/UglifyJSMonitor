@@ -364,9 +364,8 @@ if (ARGS.debug) {
 
 // Intro
 var mdFile = "# Test262 results\n\n";
-mdFile += "All tests are passed as js code to UglifyJS, and run through the minify method. " +
-    "The minified code will then be run by node. If the minified code errors, " +
-    "the original code will be run through node and the results will be compared. " +
+mdFile += "All tests are passed to UglifyJS with `vm.runInNewContext(UglifyJS.minify(file).code, {});`.\n\n" +
+    "If the minified code errors, the original code will be run through node and the results will be compared. " +
     "Ultimately, the test runner decides if a test fail. Some tests may be expected to fail.\n\n";
 mdFile += "Tests only working without UglifyJS are marked in bold.\n\n";
 mdFile += "Most tests are tested in strict and non-strict mode. " +
@@ -388,15 +387,15 @@ function getSummary(obj) {
     // Templates:
     // 1 failures whereof 1 caused by UglifyJS (1 failure over 10 local tests with 1 caused by UglifyJS, with 10 subdirectories)
     // 0 failures (no local tests, 10 subdirectories)
-    return obj.errors + " failures over " + obj.testsCount + " tests" + (
-        obj.self_error > 0 ? " whereof " + obj.self_error + " caused by UglifyJS" : ""
+    return obj.errors + "/" + obj.testsCount + " failed" + (
+        obj.self_error > 0 ? " - " + obj.self_error + " caused by UglifyJS" : ""
     ) + " (" + (
         obj.testsCount_local > 0 ? (
-            obj.errors_local > 0 ? obj.errors_local + " failures over " + obj.testsCount_local + " local tests" + (
+            obj.errors_local > 0 ? obj.errors_local + "/" + obj.testsCount_local + " local tests failed" + (
                 obj.self_error_local > 0 ? " with " + obj.self_error_local + " caused by UglifyJS" : ""
             ) : "No local failures"
         ) : "No local tests"
-    ) + ", with " + (subDirectoryCount > 0 ? subDirectoryCount : "no") + " subdirectories)";
+    ) + " - " + (subDirectoryCount > 0 ? subDirectoryCount : "no") + " subdirectories)";
 }
 
 function printResult(obj, level, path) {
@@ -469,7 +468,7 @@ function printResult(obj, level, path) {
             } else if (self_error_count === 0 && node_error_count > 0) {
                 cause = " (Caused by Node)";
             } else if (self_error_count > 0 && node_error_count > 0) {
-                cause = " (Some caused by Node and some by UglifyJS)";
+                cause = " (Caused by Node and by UglifyJS)";
             }
 
             // Add error summary

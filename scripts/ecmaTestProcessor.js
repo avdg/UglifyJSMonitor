@@ -399,8 +399,16 @@ function getSummary(obj) {
     ) + ", with " + (subDirectoryCount > 0 ? subDirectoryCount : "no") + " subdirectories)";
 }
 
-function printResult(obj, level) {
+function printResult(obj, level, path) {
     var prefix = "";
+    path = path || "";
+
+    var dirWithError = Object.keys(obj.dir).filter(function(d) {
+        return obj.dir[d].self_error > 0;
+    });
+    if (obj.errors_local === 0 && dirWithError.length === 1) {
+        return printResult(obj.dir[dirWithError[0]], level, path + dirWithError[0]);
+    }
 
     for (var c = 0; c < level; c++) {
         prefix += "    ";
@@ -409,7 +417,7 @@ function printResult(obj, level) {
     // Print current directory
     var dirs = "";
     for (var i in obj.dir) {
-        dirs += prefix + "- [" + (obj.dir[i].errors === 0 ? "x" : " ") +"] `" + i + "` " +
+        dirs += prefix + "- [" + (obj.dir[i].errors === 0 ? "x" : " ") +"] `" + path + i + "` " +
             getSummary(obj.dir[i]) + "\n";
 
         if (obj.dir[i].errors > 0) {
@@ -470,8 +478,22 @@ function printResult(obj, level) {
 
             // Print errors
             if (ARGS.a || self_error_count > 0 || node_error_count === 0) {
+                var table = {};
                 for (var l = 0; l < errors.length; l++) {
-                    fails += prefix + "  - ` " + errors[l].replace(/`/g, "``") + " `\n";
+                    if (table["$" + errors[l]] !== undefined) {
+                        table["$" + errors[l]].count++;
+                    } else {
+                        table["$" + errors[l]] = {
+                            count: 1,
+                            error: errors[l]
+                        };
+                    }
+                }
+
+                var keys = Object.keys(table);
+                for (var m = 0; m < keys.length; m++) {
+                    fails += prefix + "  - ` " + table[keys[m]].error.replace(/`/g, "``") + " `" +
+                        (table[keys[m]].count > 1 ? " " + table[keys[m]].count + "x" : "") + "\n";
                 }
             }
         }

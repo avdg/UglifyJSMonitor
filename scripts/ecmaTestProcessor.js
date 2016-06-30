@@ -387,15 +387,23 @@ function getSummary(obj) {
     // Templates:
     // 1 failures whereof 1 caused by UglifyJS (1 failure over 10 local tests with 1 caused by UglifyJS, with 10 subdirectories)
     // 0 failures (no local tests, 10 subdirectories)
-    return obj.errors + "/" + obj.testsCount + " failed" + (
+    var summary = obj.errors + "/" + obj.testsCount + " fails" + (
         obj.self_error > 0 ? " - " + obj.self_error + " caused by UglifyJS" : ""
-    ) + " (" + (
-        obj.testsCount_local > 0 ? (
-            obj.errors_local > 0 ? obj.errors_local + "/" + obj.testsCount_local + " local tests failed" + (
-                obj.self_error_local > 0 ? " with " + obj.self_error_local + " caused by UglifyJS" : ""
-            ) : "No local failures"
-        ) : "No local tests"
-    ) + " - " + (subDirectoryCount > 0 ? subDirectoryCount : "no") + " subdirectories)";
+    );
+
+    summary += " (";
+    if (subDirectoryCount > 0) {
+        summary += (
+            obj.testsCount_local > 0 ? (
+                obj.errors_local > 0 ? obj.errors_local + "/" + obj.testsCount_local + " local tests failed" + (
+                    obj.self_error_local > 0 ? " with " + obj.self_error_local + " caused by UglifyJS" : ""
+                ) : "No local failures"
+            ) : "No local tests"
+        ) + " - ";
+    }
+
+    summary += (subDirectoryCount > 0 ? subDirectoryCount : "No") + " subdirector" + (subDirectoryCount === 1 ? "y" : "ies") + ")";
+    return summary;
 }
 
 function printResult(obj, level, path) {
@@ -449,12 +457,12 @@ function printResult(obj, level, path) {
         }
 
         if (fail_count > 0) {
-            var counter = " - failed: " + fail_count + "/" + total_count;
+            var counter = " - Fails: " + fail_count + "/" + total_count;
             var error_style = self_error_count > 0 ? "**" : (node_error_count > 0 ? "~~" : "");
 
             // Add formatted link
             var test = obj.tests[j][0][1]
-                .replace(/\\/g, "\\\\")
+                .replace(/\\/g, "/")
                 .replace(/-/g, "\\-")
                 .replace(/_/g, "\\_");
             var links = " [\\[test\\]](" + data.unitTestUrl +

@@ -188,7 +188,8 @@ let fetchGrammar = function(html) {
 
 let htmlGen = (grammar) => {
     let content = `<!DOCTYPE html>
-<head lang="en">
+<html lang="en">
+<head>
 <meta charset="utf-8">
 <title>ES 6 Grammar parsing rules</title>
 <style>

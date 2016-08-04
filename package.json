@@ -19,7 +19,7 @@
   "dependencies": {
     "async": "^2.0.1",
     "htmlparser2": "^3.9.1",
-    "mocha": "^3.0.0",
+    "mocha": "^3.0.1",
     "nodegit": "^0.15.1",
     "yargs": "^4.8.1"
   }

@@ -18,6 +18,18 @@ var settings = {
             path: "build/dependencies/UglifyJS2",
             origin: "https://github.com/mishoo/UglifyJS2.git",
             repo: undefined
+        },
+        "test262-harness": {
+            branch: undefined,
+            path: "build/dependencies/test262-harness",
+            origin: "https://github.com/bterlson/test262-harness.git",
+            repo: undefined
+        },
+        "test262-harness-py": {
+            branch: undefined,
+            path: "build/dependencies/test262-harness-py",
+            origin: "https://github.com/test262-utils/test262-harness-py.git",
+            repo: undefined
         }
     },
     test262: {
@@ -41,6 +53,25 @@ function getReadline() {
     });
 }
 
+var setupNpm = function(repoRef) {
+    return function(cb, error) {
+        var cmd = /^win/.test(process.platform) ? "npm.cmd" : "npm";
+        var child = childProcess.spawn(cmd, ["install"], {
+            env: process.env,
+            cwd: repoRef.path
+        });
+
+        child.on("exit", function() {
+            cb();
+        });
+
+        child.on("error", function(e) {
+            console.log(e);
+            process.exit();
+        });
+    };
+};
+
 function config(settings, cb) {
     if (typeof cb !== "function") {
         cb = function() {};
@@ -48,10 +79,12 @@ function config(settings, cb) {
 
     console.log("These actions are available:");
     console.log("");
-    console.log("1) [fetch]   Fetch and merge dependencies to the freshest checkout");
-    console.log("2) [test262] Change branch for test262");
-    console.log("3) [uglify]  Change branch for uglify");
-    console.log("4) [runner]  Change runner command");
+    console.log("1) [fetch]              Fetch and merge dependencies to the freshest checkout");
+    console.log("2) [test262]            Change branch for test262");
+    console.log("3) [uglify]             Change branch for uglify");
+    console.log("4) [runner]             Change runner command");
+    console.log("5) [test262-harness]    Change branch for test262-harness");
+    console.log("6) [test262-harness-py] Change branch for test262-harness-py");
     console.log("");
     console.log("0) [exit]    Go back");
     console.log("");
@@ -94,6 +127,14 @@ function config(settings, cb) {
                     gotoMenu();
                 });
                 break; // TODO test
+            case "5":
+            case "test262-harness":
+                changeBranch(settings.repositories["test262-harness"], gotoMenu);
+                break;
+            case "6":
+            case "test262-harness-py":
+                changeBranch(settings.repositories["test262-harness-py"], gotoMenu);
+                break;
             default:
                 config(settings, cb);
         }
@@ -194,7 +235,9 @@ function fetch(settings) {
     };
     return Promise.all([
         new Promise(fetchAndFastForward(settings.repositories.test262)),
-        new Promise(fetchAndFastForward(settings.repositories.uglify))
+        new Promise(fetchAndFastForward(settings.repositories.uglify)),
+        new Promise(fetchAndFastForward(settings.repositories["test262-harness"])),
+        new Promise(fetchAndFastForward(settings.repositories["test262-harness-py"]))
     ]).then(function() {
         console.log("");
         return;
@@ -217,8 +260,10 @@ function preCheck(settings, cb) {
         console.log("Pre-run checklist: (press ctrl+c to abort program at any moment)");
         console.log("");
         console.log(" === Versions ===");
-        console.log("Test262  | " + settings.repositories.test262.commit + " (" + settings.repositories.test262.branch + ")");
-        console.log("UglifyJS | " + settings.repositories.uglify.commit + " (" + settings.repositories.uglify.branch + ")");
+        console.log("Test262            | " + settings.repositories.test262.commit + " (" + settings.repositories.test262.branch + ")");
+        console.log("UglifyJS           | " + settings.repositories.uglify.commit + " (" + settings.repositories.uglify.branch + ")");
+        console.log("Test262-harness    | " + settings.repositories["test262-harness"].commit + " (" + settings.repositories["test262-harness"].branch + ")");
+        console.log("Test262-harness-py | " + settings.repositories["test262-harness-py"].commit + " (" + settings.repositories["test262-harness-py"].branch + ")");
         console.log("");
         console.log(" === Dependencies ===");
         console.log("Python | " + settings.python);
@@ -280,35 +325,23 @@ function preCheck(settings, cb) {
         };
     };
 
-    var setupNpm = function(repoRef, cbNpm) {
-        var cmd = /^win/.test(process.platform) ? "npm.cmd" : "npm";
-        var child = childProcess.spawn(cmd, ["install"], {
-            env: process.env,
-            cwd: repoRef.path
-        });
-
-        child.on("exit", function() {
-            cbNpm();
-        });
-
-        child.on("error", function(e) {
-            console.log(e);
-            process.exit();
-        });
-    };
-
     console.log("Checking for non-existing dependencies...")
     return Promise.all([
         new Promise(verifyPython),
         new Promise(fetchRepoDataOrSetup(settings.repositories.test262)),
-        new Promise(fetchRepoDataOrSetup(settings.repositories.uglify))
-    ]).then(function() {
+        new Promise(fetchRepoDataOrSetup(settings.repositories.uglify)),
+        new Promise(fetchRepoDataOrSetup(settings.repositories["test262-harness"])),
+        new Promise(fetchRepoDataOrSetup(settings.repositories["test262-harness-py"]))
+    ]).then(function(cb) {
         console.log("Checking npm on dependencies...");
-        setupNpm(settings.repositories.uglify, confirm);
-    }, function(e) {
+        Promise.all([
+            new Promise(setupNpm(settings.repositories.uglify)),
+            new Promise(setupNpm(settings.repositories["test262-harness"]))
+        ]).then(cb)
+    }, function() {
         console.log(e);
         process.exit();
-    });
+    }).then(confirm);
 }
 
 function run(settings, cb) {
@@ -316,7 +349,7 @@ function run(settings, cb) {
     var cache = "";
 
     var parameters = [
-        settings.repositories.test262.path + "/tools/packaging/test262.py",
+        settings.repositories["test262-harness-py"].path + "/src/test262.py",
         "--tests=" + settings.repositories.test262.path,
         "--command", settings.test262.runner,
         "--logname", settings.test262.logfile,

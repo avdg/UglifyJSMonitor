@@ -266,6 +266,9 @@ p {
 p + p {
     margin-top: 0px;
 }
+i {
+    color: #888;
+}
 code pre {
     font-size: 75%;
     margin: 2px 0;
@@ -341,7 +344,7 @@ input[type='checkbox'] {
     for (let i in grammar) {
         content += '<div class="' + grammar[i].type + ' definitions"><b>' + grammar[i].definition + "</b><br>";
         for (let j in grammar[i].rules) {
-            content += "<code><pre>" + grammar[i].rules[j].replace(/\n/g, "<br>&emsp;").replace(/``/g, "` `") + "</pre></code>";
+            content += "<code><pre>" + grammar[i].rules[j].replace(/\n/g, "<br>&emsp;").replace(/``/g, "` `").replace(/[a-zA-Z]+(?:\[([?+~][a-zA-Z]+(, )?)+\])?\?/g, "<i>$&</i>") + "</pre></code>";
         }
         for (let j in grammar[i].notes) {
             content += "<p>" + htmlparser.DomUtils.getInnerHTML(grammar[i].notes[j]) + "</p>";

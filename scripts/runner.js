@@ -30,6 +30,12 @@ var settings = {
             path: "build/dependencies/test262-harness-py",
             origin: "https://github.com/test262-utils/test262-harness-py.git",
             repo: undefined
+        },
+        "test262-parser-tests": {
+            branch: undefined,
+            path: "build/dependencies/test262-parser-tests",
+            origin: "https://github.com/tc39/test262-parser-tests.git",
+            repo: undefined
         }
     },
     test262: {
@@ -79,12 +85,13 @@ function config(settings, cb) {
 
     console.log("These actions are available:");
     console.log("");
-    console.log("1) [fetch]              Fetch and merge dependencies to the freshest checkout");
-    console.log("2) [test262]            Change branch for test262");
-    console.log("3) [uglify]             Change branch for uglify");
-    console.log("4) [runner]             Change runner command");
-    console.log("5) [test262-harness]    Change branch for test262-harness");
-    console.log("6) [test262-harness-py] Change branch for test262-harness-py");
+    console.log("1) [fetch]                Fetch and merge dependencies to the freshest checkout");
+    console.log("2) [test262]              Change branch for test262");
+    console.log("3) [uglify]               Change branch for uglify");
+    console.log("4) [runner]               Change runner command");
+    console.log("5) [test262-harness]      Change branch for test262-harness");
+    console.log("6) [test262-harness-py]   Change branch for test262-harness-py");
+    console.log("7) [test262-parser-tests] Change branch for test262-parser-tests");
     console.log("");
     console.log("0) [exit]    Go back");
     console.log("");
@@ -134,6 +141,10 @@ function config(settings, cb) {
             case "6":
             case "test262-harness-py":
                 changeBranch(settings.repositories["test262-harness-py"], gotoMenu);
+                break;
+            case "7":
+            case "test262-parser-tests":
+                changeBranch(settings.repositories["test262-parser-tests"], gotoMenu);
                 break;
             default:
                 config(settings, cb);
@@ -237,7 +248,8 @@ function fetch(settings) {
         new Promise(fetchAndFastForward(settings.repositories.test262)),
         new Promise(fetchAndFastForward(settings.repositories.uglify)),
         new Promise(fetchAndFastForward(settings.repositories["test262-harness"])),
-        new Promise(fetchAndFastForward(settings.repositories["test262-harness-py"]))
+        new Promise(fetchAndFastForward(settings.repositories["test262-harness-py"])),
+        new Promise(fetchAndFastForward(settings.repositories["test262-parser-tests"]))
     ]).then(function() {
         console.log("");
         return;
@@ -260,10 +272,11 @@ function preCheck(settings, cb) {
         console.log("Pre-run checklist: (press ctrl+c to abort program at any moment)");
         console.log("");
         console.log(" === Versions ===");
-        console.log("Test262            | " + settings.repositories.test262.commit + " (" + settings.repositories.test262.branch + ")");
-        console.log("UglifyJS           | " + settings.repositories.uglify.commit + " (" + settings.repositories.uglify.branch + ")");
-        console.log("Test262-harness    | " + settings.repositories["test262-harness"].commit + " (" + settings.repositories["test262-harness"].branch + ")");
-        console.log("Test262-harness-py | " + settings.repositories["test262-harness-py"].commit + " (" + settings.repositories["test262-harness-py"].branch + ")");
+        console.log("Test262              | " + settings.repositories.test262.commit + " (" + settings.repositories.test262.branch + ")");
+        console.log("UglifyJS             | " + settings.repositories.uglify.commit + " (" + settings.repositories.uglify.branch + ")");
+        console.log("Test262-harness      | " + settings.repositories["test262-harness"].commit + " (" + settings.repositories["test262-harness"].branch + ")");
+        console.log("Test262-harness-py   | " + settings.repositories["test262-harness-py"].commit + " (" + settings.repositories["test262-harness-py"].branch + ")");
+        console.log("test262-parser-tests | " + settings.repositories["test262-parser-tests"].commit + " (" + settings.repositories["test262-parser-tests"].branch + ")");
         console.log("");
         console.log(" === Dependencies ===");
         console.log("Python | " + settings.python);
@@ -331,7 +344,8 @@ function preCheck(settings, cb) {
         new Promise(fetchRepoDataOrSetup(settings.repositories.test262)),
         new Promise(fetchRepoDataOrSetup(settings.repositories.uglify)),
         new Promise(fetchRepoDataOrSetup(settings.repositories["test262-harness"])),
-        new Promise(fetchRepoDataOrSetup(settings.repositories["test262-harness-py"]))
+        new Promise(fetchRepoDataOrSetup(settings.repositories["test262-harness-py"])),
+        new Promise(fetchRepoDataOrSetup(settings.repositories["test262-parser-tests"]))
     ]).then(function(cb) {
         console.log("Checking npm on dependencies...");
         Promise.all([

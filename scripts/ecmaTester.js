@@ -19,7 +19,6 @@ var fs = require("fs");
 var vm = require("vm");
 var UglifyJS = require("../build/dependencies/UglifyJS2/tools/node");
 
-console.log("Using ", process.versions);
 
 var minified = "[Nothing]";
 var source;

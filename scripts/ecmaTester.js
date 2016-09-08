@@ -63,7 +63,6 @@ try {
         )
     );
     console.log("Version: Node " + process.versions.node);
-    console.log("File (may be a temp file): " + file);
     console.log("Error: ", e);
     console.log("Stack: ", e.stack);
     console.log("\n\n");
@@ -76,8 +75,8 @@ try {
         if (options.verbose) {
             console.log("Original code:");
             console.log(source);
+            console.log();
         }
-        console.log();
     }
     console.log("==========\n");
 

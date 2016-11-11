@@ -34,8 +34,8 @@ var ARGS = yargs.usage(
         "Format input files: every line contains a path to a file to be copied."
     )
     .describe("h",    "Get help")
-    .describe("from", "Path to copy tests from")
-    .describe("to",   "Path to copy tests to")
+    .describe("from", "Test262 root path to copy tests from")
+    .describe("to",   "test262 root path to copy tests to")
 
     .alias("h", "help")
     .wrap(80)

@@ -60,7 +60,19 @@ console.log("Found " + tests.length + " tests");
 
 // For every hash table element, copy file from path to destination
 for (let i = 0; i < tests.length; i++) {
-    let dest = path.join(ARGS.to, tests[i]);
+    let dest = path.join(ARGS.to, "test", tests[i]);
     mkdir(path.dirname(dest));
-    fs.writeFileSync(dest, fs.readFileSync(path.join(ARGS.from, tests[i]), {encoding: 'utf-8'}));
+    fs.writeFileSync(dest, fs.readFileSync(path.join(ARGS.from, "test", tests[i]), {encoding: 'utf-8'}));
+}
+
+var harnessFiles = fs.readdirSync(path.join(ARGS.from, "harness"));
+mkdir(path.join(ARGS.to, "harness"));
+for (let i = 0; i < harnessFiles.length; i++) {
+    let stats = fs.statSync(path.join(ARGS.from, "harness", harnessFiles[i]));
+
+    if (stats.isDirectory()) {
+        continue;
+    }
+
+    fs.writeFileSync(path.join(ARGS.to, "harness", harnessFiles[i]), fs.readFileSync(path.join(ARGS.from, "harness", harnessFiles[i]), {encoding: 'utf-8'}));
 }

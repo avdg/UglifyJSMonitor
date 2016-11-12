@@ -2,31 +2,11 @@
 
 "use strict";
 
-// mkdir comes from file.mkdir on https://github.com/gruntjs/grunt
-// Like mkdir -p. Create a directory and any intermediary directories.
-var pathSeparatorRe = /[\/\\]/g;
-var mkdir = function(dirpath, mode) {
-  // Set directory mode in a strict-mode-friendly way.
-  if (mode == null) {
-    mode = parseInt('0777', 8) & (~process.umask());
-  }
-  dirpath.split(pathSeparatorRe).reduce(function(parts, part) {
-    parts += part + '/';
-    var subpath = path.resolve(parts);
-    if (!fs.existsSync(subpath)) {
-      try {
-        fs.mkdirSync(subpath, mode);
-      } catch (e) {
-        throw new Error('Unable to create directory "' + subpath + '" (Error code: ' + e.code + ').', e);
-      }
-    }
-    return parts;
-  }, '');
-};
-
 var fs = require("fs");
 var path = require("path");
 var yargs = require("yargs");
+
+var file = require("../lib/file.js");
 
 var ARGS = yargs.usage(
         "$0 tests.txt --from inputDir --to outputDir\n\n" +
@@ -61,12 +41,12 @@ console.log("Found " + tests.length + " tests");
 // For every hash table element, copy file from path to destination
 for (let i = 0; i < tests.length; i++) {
     let dest = path.join(ARGS.to, "test", tests[i]);
-    mkdir(path.dirname(dest));
+    file.mkdir(path.dirname(dest));
     fs.writeFileSync(dest, fs.readFileSync(path.join(ARGS.from, "test", tests[i]), {encoding: 'utf-8'}));
 }
 
 var harnessFiles = fs.readdirSync(path.join(ARGS.from, "harness"));
-mkdir(path.join(ARGS.to, "harness"));
+file.mkdir(path.join(ARGS.to, "harness"));
 for (let i = 0; i < harnessFiles.length; i++) {
     let stats = fs.statSync(path.join(ARGS.from, "harness", harnessFiles[i]));
 

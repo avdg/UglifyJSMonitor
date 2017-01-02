@@ -77,6 +77,7 @@ let fetchSpec = function() {
 };
 
 let fetchGrammar = function(html) {
+    // Prefetch important html/xml nodes
     let annexA = html.find(function(obj) {
         return obj.type === "tag" &&
             obj.name === "emu-annex" &&
@@ -93,8 +94,10 @@ let fetchGrammar = function(html) {
      * It lists all relevant nodes for ecmascript.
      *
      * Each em-annex node there contains:
-     *   - A <h1> header tag, describing the category
-     *   - Am empty <emu-prodref> tag, containing a name attribute.
+     *   - A <h1> header tag, describing the category. Except for prefix, it is
+     *     is the same name as as the em-annex id attribute value.
+     *   - An empty <emu-prodref> tag, containing a name attribute.
+     *     This is a reference to the actual grammar somewhere in the document.
      *
      * Some emu-prodref tags are followed by a <p> tag, adding some extra
      * information about the <emu-prodref> above.
@@ -102,9 +105,18 @@ let fetchGrammar = function(html) {
      * Because the raw content is injected for the time being, the content might
      * not be as useful as wanted on the output sheet for the time being.
      *
+     * Notes are added to their relevant definition
+     *
+     * Output format:
+     * For each grammar definitions:
+     *     An object with properties
+     *       - `definition` (definition reference)
+     *       - `type`: the emu-prodref id reference (or catagory of the ecmascript grammar)
+     *       - `notes`: a list of notitions
+     *
      * @param Array node List of html/xml nodes
      *
-     * @return Array List of definiitions
+     * @return Array List of definitions as written above
      */
     let grammerParser = (node) => {
         let definitions = [];
@@ -150,6 +162,7 @@ let fetchGrammar = function(html) {
         return definitions;
     };
 
+    // Iterate annex a
     let definitions = [];
     for (let i in annexA.children) {
         let node = annexA.children[i];
@@ -168,13 +181,14 @@ let fetchGrammar = function(html) {
         }
     }
 
-    let f = (def) => (obj) => {
+    // Set up helpers
+    let defFilter = (def) => (obj) => {
         return obj.children[0].data.match("\\n\\s*" + def + "(?:\\[[a-zA-Z,?+~ ]+\\])?\\s*:");
     };
-    let r = (def) => (obj) => {
+    let fetchContent = (def) => (obj) => {
         return obj.children[0].data.match(def + "(?:\\[[a-zA-Z,?+~ ]+\\])?\\s*:\\n?(?:[^\\n]+\\n)*\\n?");
     };
-    let p = (def, arr) => {
+    let grammarFormatter = (def, arr) => {
         results = [];
         for (let i = 0; i < arr.length; i++) {
             for (let j = 0; j < arr[i].length; j++) {
@@ -195,12 +209,14 @@ let fetchGrammar = function(html) {
 
         return results;
     };
+
+    // Get definitions
     for (let i in definitions) {
-        definitions[i].rules = grammarRules.filter(f(definitions[i].definition));
+        definitions[i].rules = grammarRules.filter(defFilter(definitions[i].definition));
         if (definitions[i].rules.length === 0)
             throw Error(definitions[i].definition + " has no results");
-        definitions[i].rules = definitions[i].rules.map(r(definitions[i].definition));
-        definitions[i].rules = p(definitions[i].definition, definitions[i].rules);
+        definitions[i].rules = definitions[i].rules.map(fetchContent(definitions[i].definition));
+        definitions[i].rules = grammarFormatter(definitions[i].definition, definitions[i].rules);
     }
 
     return definitions;

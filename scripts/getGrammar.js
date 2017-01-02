@@ -86,6 +86,26 @@ let fetchGrammar = function(html) {
         return obj.type === "tag" && obj.name === "emu-grammar";
     }, html, true);
 
+    /**
+     * Parses xml nodes containing ecmascript grammar
+     *
+     * The input refers to the content of an emu-annex node in Annex A.
+     * It lists all relevant nodes for ecmascript.
+     *
+     * Each em-annex node there contains:
+     *   - A <h1> header tag, describing the category
+     *   - Am empty <emu-prodref> tag, containing a name attribute.
+     *
+     * Some emu-prodref tags are followed by a <p> tag, adding some extra
+     * information about the <emu-prodref> above.
+     *
+     * Because the raw content is injected for the time being, the content might
+     * not be as useful as wanted on the output sheet for the time being.
+     *
+     * @param Array node List of html/xml nodes
+     *
+     * @return Array List of definiitions
+     */
     let grammerParser = (node) => {
         let definitions = [];
 
@@ -360,7 +380,7 @@ input[type='checkbox'] {
     content +=`};`;
     content += `let links=document.querySelectorAll("#selector input + a");`;
     content += `for(let i=0;i<links.length;i++){let name=links[i].previousElementSibling.id;links[i].onclick=function(){`;
-    content +=     `console.log(tmp[0].checked);for(let j=0;j<links.length;j++){let prev=links[j].previousElementSibling;prev.checked=prev.id===name;prev.onchange()};console.log("done")`;
+    content +=     `for(let j=0;j<links.length;j++){let prev=links[j].previousElementSibling;prev.checked=prev.id===name;prev.onchange()}`;
     content += `}}}`;
     content += "</script></body></html>";
     return content;

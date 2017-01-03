@@ -121,6 +121,12 @@ let fetchGrammar = function(html) {
     let grammerParser = (node) => {
         let definitions = [];
 
+        let notesFormatter = (node) =>
+            htmlparser.DomUtils.getInnerHTML(node).replace(
+                /<emu-prodref[^>]*name="([a-zA-Z]*)"[^>]*><\/emu-prodref>/g,
+                "|$1|"
+            );
+
         for (let i in node.children) {
             let definition = node.children[i];
             switch(definition.type) {
@@ -146,7 +152,7 @@ let fetchGrammar = function(html) {
                             definition.children[0].data === "&nbsp;"
                         )
                             continue;
-                        definitions[definitions.length - 1].notes.push(definition);
+                        definitions[definitions.length - 1].notes.push(notesFormatter(definition));
                     } else if (definition.name === "h1") {
                         continue;
                     } else {
@@ -383,7 +389,7 @@ input[type='checkbox'] {
             content += "<code><pre>" + grammar[i].rules[j].replace(/\n/g, "<br>&emsp;").replace(/``/g, "` `").replace(/[a-zA-Z]+(?:\[([?+~][a-zA-Z]+(, )?)+\])?\?/g, "<i>$&</i>") + "</pre></code>";
         }
         for (let j in grammar[i].notes) {
-            content += "<p>" + htmlparser.DomUtils.getInnerHTML(grammar[i].notes[j]) + "</p>";
+            content += "<p>" + grammar[i].notes[j] + "</p>";
         }
         content += "</div>";
     }

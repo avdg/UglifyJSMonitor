@@ -233,7 +233,7 @@ let htmlGen = (grammar) => {
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>ES 6 Grammar parsing rules</title>
+<title>ES Grammar parsing rules</title>
 <style>
 @media print {
     .no-print {
@@ -371,7 +371,7 @@ input[type='checkbox'] {
 <link rel="icon" href="es-favicon.ico" type="image/x-icon"/>
 </head><body>
 <div id="selector" class="multi-col no-print">
-<h2>Ecmascript 6 language grammar as of ${new Date().getDate()}/${new Date().getMonth()+1}/${new Date().getFullYear()}</h2>
+<h2>Ecmascript language grammar as of ${new Date().getDate()}/${new Date().getMonth()+1}/${new Date().getFullYear()}</h2>
 <input type="checkbox" id="select-lexical-grammar" checked><a href="#">Lexical grammar</a><br>
 <input type="checkbox" id="select-expressions" checked><a href="#">Expressions</a><br>
 <input type="checkbox" id="select-statements" checked><a href="#">Statements</a><br>

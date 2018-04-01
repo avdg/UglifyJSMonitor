@@ -197,14 +197,12 @@ const htmlGrammarContent = (grammar) => {
 }
 
 const htmlGen = (grammar) => {
-    let content = `<!DOCTYPE html>
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <title>ES Grammar parsing rules</title>
-<style>
-${fetchSpecStyle()}
-</style>
+<style>${fetchSpecStyle()}</style>
 <link rel="icon" href="es-favicon.ico" type="image/x-icon"/>
 </head><body>
 <div id="selector" class="multi-col no-print">
@@ -221,20 +219,16 @@ ${fetchSpecStyle()}
 <div class="multi-col" id="grammar">
 ${htmlGrammarContent(grammar)}
 </div><script>
-`;
-
-    content += `{let tmp=document.querySelectorAll("#selector input");`;
-    content += `for(let i in tmp)if(tmp[i].type==="checkbox"&&tmp[i].id.substr(0,7)==="select-")tmp[i].onchange=function(){`;
-    content +=     `let elem="sec-"+this.id.substr(7),visible=this.checked,nodes=document.querySelectorAll("div ." + elem);`;
-    content +=     `for(let i=0;i<nodes.length;i++){nodes[i].style.display=visible?null:"none";}`;
-    content +=`};`;
-    content += `let links=document.querySelectorAll("#selector input + a");`;
-    content += `for(let i=0;i<links.length;i++){let name=links[i].previousElementSibling.id;links[i].onclick=function(){`;
-    content +=     `for(let j=0;j<links.length;j++){let prev=links[j].previousElementSibling;prev.checked=prev.id===name;prev.onchange()}`;
-    content += `}}}`;
-    content += "</script></body></html>";
-
-    return content;
+{let tmp=document.querySelectorAll("#selector input");
+for(let i in tmp)if(tmp[i].type==="checkbox"&&tmp[i].id.substr(0,7)==="select-")tmp[i].onchange=function(){
+    let elem="sec-"+this.id.substr(7),visible=this.checked,nodes=document.querySelectorAll("div ."+elem);
+    for(let i=0;i<nodes.length;i++){nodes[i].style.display=visible?null:"none";}
+};
+let links=document.querySelectorAll("#selector input + a");
+for(let i=0;i<links.length;i++){let name=links[i].previousElementSibling.id;links[i].onclick=function(){
+    for(let j=0;j<links.length;j++){let prev=links[j].previousElementSibling;prev.checked=prev.id===name;prev.onchange()}
+}}}
+</script></body></html>`;
 };
 
 fetchSpec().then(function(content) {

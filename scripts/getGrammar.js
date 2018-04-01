@@ -27,6 +27,117 @@ const fetchSpecStyle = () => {
     return fs.readFileSync(RES_STYLE, {encoding: "utf8"});
 }
 
+const defFilter = (def) => (obj) => {
+    return obj.children[0].data.match("\\n\\s*" + def + "(?:\\[[a-zA-Z,?+~ ]+\\])?\\s*:");
+};
+
+const fetchDefinitionContent = (def) => (obj) => {
+    return obj.children[0].data.match(def + "(?:\\[[a-zA-Z,?+~ ]+\\])?\\s*:\\n?(?:[^\\n]+\\n)*\\n?");
+};
+
+/**
+ * Parses xml nodes containing ecmascript grammar
+ *
+ * The input refers to the content of an emu-annex node in Annex A.
+ * It lists all relevant nodes for ecmascript.
+ *
+ * Each em-annex node there contains:
+ *   - A <h1> header tag, describing the category. Except for prefix, it is
+ *     is the same name as as the em-annex id attribute value.
+ *   - An empty <emu-prodref> tag, containing a name attribute.
+ *     This is a reference to the actual grammar somewhere in the document.
+ *
+ * Some emu-prodref tags are followed by a <p> tag, adding some extra
+ * information about the <emu-prodref> above.
+ *
+ * Because the raw content is injected for the time being, the content might
+ * not be as useful as wanted on the output sheet for the time being.
+ *
+ * Notes are added to their relevant definition
+ *
+ * Output format:
+ * For each grammar definitions:
+ *     An object with properties
+ *       - `definition` (definition reference)
+ *       - `type`: the emu-prodref id reference (or catagory of the ecmascript grammar)
+ *       - `notes`: a list of notitions
+ *
+ * @param Array node List of html/xml nodes
+ *
+ * @return Array List of definitions as written above
+ */
+const grammerParser = (node) => {
+    let definitions = [];
+
+    const notesFormatter = (node) =>
+        htmlparser.DomUtils.getInnerHTML(node).replace(
+            /<emu-prodref[^>]*name="([a-zA-Z]*)"[^>]*><\/emu-prodref>/g,
+            "|$1|"
+        );
+
+    for (let i in node.children) {
+        let definition = node.children[i];
+        switch(definition.type) {
+            case "comment":
+            break;
+            case "text":
+                if (definition.data.match(/\n\s*/)) {
+                    continue;
+                } else {
+                    console.log("text: '", definition.data, "'");
+                }
+                break;
+            case "tag":
+                if (definition.name === "emu-prodref") {
+                    definitions.push({
+                        definition: definition.attribs.name,
+                        type: node.attribs.id,
+                        notes: []
+                    });
+                } else if (definition.name === "p") {
+                    if (definition.children.length === 1 &&
+                        definition.children[0].type === "text" &&
+                        definition.children[0].data === "&nbsp;"
+                    )
+                        continue;
+                    definitions[definitions.length - 1].notes.push(notesFormatter(definition));
+                } else if (definition.name === "h1") {
+                    continue;
+                } else {
+                    console.log("Unknown tag " + definition.name);
+                }
+                break;
+            default:
+                console.log(Error.stack, definition);
+                throw Error("Unknown node");
+        }
+    }
+
+    return definitions;
+};
+
+const grammarFormatter = (def, arr) => {
+    let results = [];
+    for (let i = 0; i < arr.length; i++) {
+        for (let j = 0; j < arr[i].length; j++) {
+            if (typeof arr[i][j] === "string") {
+                let rule = arr[i][j].replace(/ {2,}/g, "").trim();
+                if (/^[^:]*:+(\n`[^`\n]*`){2,}\n*$/.test(rule)) {
+                    rule = rule.replace(/`\n/g, "` ").replace(/:\n/, ": one of\n");
+                } else if (/^[^:]*:+(\n\s*&lt;[^&\n]*&gt;){2,}\n*$/.test(rule)) {
+                    rule = rule.replace(/&gt;\n/g, "&gt; ").replace(/:\n/, ": one of\n");
+                }
+                if (results.indexOf(rule) !== -1) {
+                    continue;
+                }
+                results.push(rule);
+            }
+        }
+    }
+
+    return results;
+};
+
 const fetchGrammar = (html) => {
     // Prefetch important html/xml nodes
     const annexA = html.find(function(obj) {
@@ -37,87 +148,6 @@ const fetchGrammar = (html) => {
     const grammarRules = htmlparser.DomUtils.find(function(obj) {
         return obj.type === "tag" && obj.name === "emu-grammar";
     }, html, true);
-
-    /**
-     * Parses xml nodes containing ecmascript grammar
-     *
-     * The input refers to the content of an emu-annex node in Annex A.
-     * It lists all relevant nodes for ecmascript.
-     *
-     * Each em-annex node there contains:
-     *   - A <h1> header tag, describing the category. Except for prefix, it is
-     *     is the same name as as the em-annex id attribute value.
-     *   - An empty <emu-prodref> tag, containing a name attribute.
-     *     This is a reference to the actual grammar somewhere in the document.
-     *
-     * Some emu-prodref tags are followed by a <p> tag, adding some extra
-     * information about the <emu-prodref> above.
-     *
-     * Because the raw content is injected for the time being, the content might
-     * not be as useful as wanted on the output sheet for the time being.
-     *
-     * Notes are added to their relevant definition
-     *
-     * Output format:
-     * For each grammar definitions:
-     *     An object with properties
-     *       - `definition` (definition reference)
-     *       - `type`: the emu-prodref id reference (or catagory of the ecmascript grammar)
-     *       - `notes`: a list of notitions
-     *
-     * @param Array node List of html/xml nodes
-     *
-     * @return Array List of definitions as written above
-     */
-    const grammerParser = (node) => {
-        let definitions = [];
-
-        const notesFormatter = (node) =>
-            htmlparser.DomUtils.getInnerHTML(node).replace(
-                /<emu-prodref[^>]*name="([a-zA-Z]*)"[^>]*><\/emu-prodref>/g,
-                "|$1|"
-            );
-
-        for (let i in node.children) {
-            let definition = node.children[i];
-            switch(definition.type) {
-                case "comment":
-                break;
-                case "text":
-                    if (definition.data.match(/\n\s*/)) {
-                        continue;
-                    } else {
-                        console.log("text: '", definition.data, "'");
-                    }
-                    break;
-                case "tag":
-                    if (definition.name === "emu-prodref") {
-                        definitions.push({
-                            definition: definition.attribs.name,
-                            type: node.attribs.id,
-                            notes: []
-                        });
-                    } else if (definition.name === "p") {
-                        if (definition.children.length === 1 &&
-                            definition.children[0].type === "text" &&
-                            definition.children[0].data === "&nbsp;"
-                        )
-                            continue;
-                        definitions[definitions.length - 1].notes.push(notesFormatter(definition));
-                    } else if (definition.name === "h1") {
-                        continue;
-                    } else {
-                        console.log("Unknown tag " + definition.name);
-                    }
-                    break;
-                default:
-                    console.log(Error.stack, definition);
-                    throw Error("Unknown node");
-            }
-        }
-
-        return definitions;
-    };
 
     // Iterate annex a
     let definitions = [];
@@ -138,41 +168,12 @@ const fetchGrammar = (html) => {
         }
     }
 
-    // Set up helpers
-    const defFilter = (def) => (obj) => {
-        return obj.children[0].data.match("\\n\\s*" + def + "(?:\\[[a-zA-Z,?+~ ]+\\])?\\s*:");
-    };
-    const fetchContent = (def) => (obj) => {
-        return obj.children[0].data.match(def + "(?:\\[[a-zA-Z,?+~ ]+\\])?\\s*:\\n?(?:[^\\n]+\\n)*\\n?");
-    };
-    const grammarFormatter = (def, arr) => {
-        let results = [];
-        for (let i = 0; i < arr.length; i++) {
-            for (let j = 0; j < arr[i].length; j++) {
-                if (typeof arr[i][j] === "string") {
-                    let rule = arr[i][j].replace(/ {2,}/g, "").trim();
-                    if (/^[^:]*:+(\n`[^`\n]*`){2,}\n*$/.test(rule)) {
-                        rule = rule.replace(/`\n/g, "` ").replace(/:\n/, ": one of\n");
-                    } else if (/^[^:]*:+(\n\s*&lt;[^&\n]*&gt;){2,}\n*$/.test(rule)) {
-                        rule = rule.replace(/&gt;\n/g, "&gt; ").replace(/:\n/, ": one of\n");
-                    }
-                    if (results.indexOf(rule) !== -1) {
-                        continue;
-                    }
-                    results.push(rule);
-                }
-            }
-        }
-
-        return results;
-    };
-
     // Get definitions
     for (let i in definitions) {
         definitions[i].rules = grammarRules.filter(defFilter(definitions[i].definition));
         if (definitions[i].rules.length === 0)
             throw Error(definitions[i].definition + " has no results");
-        definitions[i].rules = definitions[i].rules.map(fetchContent(definitions[i].definition));
+        definitions[i].rules = definitions[i].rules.map(fetchDefinitionContent(definitions[i].definition));
         definitions[i].rules = grammarFormatter(definitions[i].definition, definitions[i].rules);
     }
 

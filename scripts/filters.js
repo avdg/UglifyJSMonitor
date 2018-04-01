@@ -1,27 +1,20 @@
+'use strict';
+
+const getErrorContent = (rawErrorList) =>
+    rawErrorList.map(
+        (r) => r.substr("https://github.com/tc39/test262/blob/master/test/".length)
+    ).reduce(
+        (a, b) => a + '\n' + b
+    );
+
 module.exports = {
-    onlyUglifyFailures: function(text) {
-        return text.match(/https:\/\/[a-zA-Z0-9\/\-._]+(?=\) \(Caused by UglifyJS\))/g)
-            .map(function(r, i, a) {
-                return r.substr("https://github.com/tc39/test262/blob/master/test/".length);
-            })
-            .reduce(function(a, b) {
-                return a + "\n" + b;
-            });
-    },
-    nodeAndUglifyFailures: function(text) {
-        return text.match(/https:\/\/[a-zA-Z0-9\/\-._]+(?=\) \(Caused by Node and by UglifyJS\))/g)
-            .map(function(r, i, a) {
-                return r.substr("https://github.com/tc39/test262/blob/master/test/".length);
-            }).reduce(function(a, b) {
-                return a + "\n" + b;
-            });
-    },
-    unknownFailures: function(text) {
-        return text.match(/https:\/\/[a-zA-Z0-9\/\-._]+(?=\) \-)/g)
-            .map(function(r, i, a) {
-                return r.substr("https://github.com/tc39/test262/blob/master/test/".length);
-            }).reduce(function(a, b) {
-                return a + "\n" + b;
-            });
-    }
+    onlyUglifyFailures: (text) => getErrorContent(
+        text.match(/https:\/\/[a-zA-Z0-9\/\-._]+(?=\) \(Caused by UglifyJS\))/g)
+    ),
+    nodeAndUglifyFailures: (text) => getErrorContent(
+        text.match(/https:\/\/[a-zA-Z0-9\/\-._]+(?=\) \(Caused by Node and by UglifyJS\))/g)
+    ),
+    unknownFailures: (text) => getErrorContent(
+        text.match(/https:\/\/[a-zA-Z0-9\/\-._]+(?=\) \-)/g)
+    ),
 };

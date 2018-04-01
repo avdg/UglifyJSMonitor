@@ -5,12 +5,15 @@ const htmlparser = require("htmlparser2");
 
 const scraper = require('../lib/scraper.js');
 
-const RES_DIR = 'res/grammar/';
-const RES_STYLE = RES_DIR + 'css/style.css';
+const RES_DIR =  __dirname + '/../res/';
+const RES_DIR_GRAMMAR = RES_DIR + 'grammar/';
+const RES_STYLE = RES_DIR_GRAMMAR + 'css/style.css';
+const RES_FAVICON = RES_DIR + 'es-favicon.ico';
 
 const SPEC_URL = "https://raw.githubusercontent.com/tc39/ecma262/master/spec.html";
-const SPEC_CACHE = "build/spec/";
+const SPEC_CACHE = __dirname + "/../build/spec/";
 const SPEC_CACHE_ECMA_262 = SPEC_CACHE + "ecma262.html";
+const SPEC_CACHE_FAVICON = SPEC_CACHE + 'es-favicon.ico';
 const SPEC_CACHE_HTML = SPEC_CACHE + "output.html";
 
 const fetchSpec = () => {
@@ -230,15 +233,13 @@ fetchSpec().then(function(content) {
     console.log("Fetched and parsed html");
 
     try {
-        let grammar = fetchGrammar(html);
-        let favicon_in  = fs.createReadStream(__dirname + "/../res/es-favicon.ico");
-        let favicon_out = fs.createWriteStream(SPEC_CACHE + "es-favicon.ico");
+        const grammar = fetchGrammar(html);
+        const favicon_in  = fs.createReadStream(RES_FAVICON);
+        const favicon_out = fs.createWriteStream(SPEC_CACHE_FAVICON);
         favicon_in.pipe(favicon_out);
         fs.writeFileSync(SPEC_CACHE_HTML, htmlGen(grammar));
     } catch (e) {
         console.log(e);
-    } finally {
-        
     }
 }, function(e) {
     console.log(e);

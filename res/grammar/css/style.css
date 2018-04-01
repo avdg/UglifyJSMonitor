@@ -1,0 +1,157 @@
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    .multi-col {
+        -moz-column-count: 3;
+        -moz-column-gap: 5px;
+        -webkit-column-count: 3;
+        -webkit-column-gap: 5px;
+        column-count: 3;
+        column-gap: 5px;
+        column-fill: balance;
+    }
+}
+
+@page {
+    margin: 6mm;
+}
+
+@media screen and (min-width:1200px) {
+    .multi-col {
+        -moz-column-count: 4;
+        -moz-column-gap: 10px;
+        -webkit-column-count: 4;
+        -webkit-column-gap: 10px;
+        column-count: 4;
+        column-gap: 10px;
+        column-fill: balance;
+    }
+}
+
+@media screen and (min-width:900px) and (max-width:1199) {
+    .multi-col {
+        -moz-column-count: 3;
+        -moz-column-gap: 10px;
+        -webkit-column-count: 3;
+        -webkit-column-gap: 10px;
+        column-count: 3;
+        column-gap: 10px;
+        column-fill: balance;
+    }
+}
+
+@media screen and (min-width:600px) and (max-width:899px) {
+    .multi-col {
+        -moz-column-count: 2;
+        -moz-column-gap: 10px;
+        -webkit-column-count: 2;
+        -webkit-column-gap: 10px;
+        column-count: 2;
+        column-gap: 10px;
+        column-fill: balance;
+    }
+}
+
+@media screen and (max-width:300px) {
+    .multi-col {
+        -moz-column-count: 1;
+        -moz-column-gap: 10px;
+        -webkit-column-count: 1;
+        -webkit-column-gap: 10px;
+        column-count: 1;
+        column-gap: 10px;
+        column-fill: balance;
+    }
+}
+
+div {
+    margin: 0px;
+    padding: 0px;
+}
+
+p {
+    break-after: always;
+    margin: 2px 0;
+    line-height: 100%;
+}
+
+p + p {
+    margin-top: 0px;
+}
+
+i {
+    color: #888;
+}
+
+code pre {
+    font-size: 75%;
+    margin: 2px 0;
+    white-space: pre-wrap;
+}
+
+code pre::first-line {
+    font-weight: bold;
+}
+
+input[type='checkbox'] {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+}
+
+#selector {
+    border: 1px solid #000000;
+    border-radius: 5px;
+    background: rgba(200,200,200, .5);
+}
+
+#selector h2 {
+    color: #880088;
+}
+
+#grammar {
+    line-break: strict;
+    word-break: break-all;
+}
+
+.definitions b {
+    font-size: 80%;
+    line-heigth: 90%;
+}
+
+.definitions p {
+    font-size: 60%;
+}
+
+.sec-lexical-grammar b {
+    color: #00cc00;
+}
+
+.sec-expressions b {
+    color: #cc0000;
+}
+
+.sec-statements b {
+    color: #0000cc;
+}
+
+.sec-functions-and-classes b {
+    color: #888800;
+}
+
+.sec-scripts-and-modules b {
+    color: #880088;
+}
+
+.sec-number-conversions b {
+    color: #008888;
+}
+
+.sec-universal-resource-identifier-character-classes b {
+    color: #4444cc;
+}
+
+.sec-regular-expressions b {
+    color: #44cc44;
+}

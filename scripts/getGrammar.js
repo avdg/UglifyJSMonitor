@@ -5,24 +5,33 @@ const htmlparser = require("htmlparser2");
 
 const scraper = require('../lib/scraper.js');
 
+const RES_DIR = 'res/grammar/';
+const RES_STYLE = RES_DIR + 'css/style.css';
+
 const SPEC_URL = "https://raw.githubusercontent.com/tc39/ecma262/master/spec.html";
 const SPEC_CACHE = "build/spec/";
+const SPEC_CACHE_ECMA_262 = SPEC_CACHE + "ecma262.html";
+const SPEC_CACHE_HTML = SPEC_CACHE + "output.html";
 
-let fetchSpec = function() {
+const fetchSpec = () => {
     return scraper.fetchContent({
         url: SPEC_URL,
-        cache: SPEC_CACHE + "ecma262.html"
+        cache: SPEC_CACHE_ECMA_262
     });
 };
 
-let fetchGrammar = function(html) {
+const fetchSpecStyle = () => {
+    return fs.readFileSync(RES_STYLE, {encoding: "utf8"});
+}
+
+const fetchGrammar = (html) => {
     // Prefetch important html/xml nodes
-    let annexA = html.find(function(obj) {
+    const annexA = html.find(function(obj) {
         return obj.type === "tag" &&
             obj.name === "emu-annex" &&
             obj.attribs.id === "sec-grammar-summary";
     });
-    let grammarRules = htmlparser.DomUtils.find(function(obj) {
+    const grammarRules = htmlparser.DomUtils.find(function(obj) {
         return obj.type === "tag" && obj.name === "emu-grammar";
     }, html, true);
 
@@ -57,10 +66,10 @@ let fetchGrammar = function(html) {
      *
      * @return Array List of definitions as written above
      */
-    let grammerParser = (node) => {
+    const grammerParser = (node) => {
         let definitions = [];
 
-        let notesFormatter = (node) =>
+        const notesFormatter = (node) =>
             htmlparser.DomUtils.getInnerHTML(node).replace(
                 /<emu-prodref[^>]*name="([a-zA-Z]*)"[^>]*><\/emu-prodref>/g,
                 "|$1|"
@@ -127,13 +136,13 @@ let fetchGrammar = function(html) {
     }
 
     // Set up helpers
-    let defFilter = (def) => (obj) => {
+    const defFilter = (def) => (obj) => {
         return obj.children[0].data.match("\\n\\s*" + def + "(?:\\[[a-zA-Z,?+~ ]+\\])?\\s*:");
     };
-    let fetchContent = (def) => (obj) => {
+    const fetchContent = (def) => (obj) => {
         return obj.children[0].data.match(def + "(?:\\[[a-zA-Z,?+~ ]+\\])?\\s*:\\n?(?:[^\\n]+\\n)*\\n?");
     };
-    let grammarFormatter = (def, arr) => {
+    const grammarFormatter = (def, arr) => {
         let results = [];
         for (let i = 0; i < arr.length; i++) {
             for (let j = 0; j < arr[i].length; j++) {
@@ -167,145 +176,14 @@ let fetchGrammar = function(html) {
     return definitions;
 };
 
-let htmlGen = (grammar) => {
+const htmlGen = (grammar) => {
     let content = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <title>ES Grammar parsing rules</title>
 <style>
-@media print {
-    .no-print {
-        display: none !important;
-    }
-    .multi-col {
-        -moz-column-count: 3;
-        -moz-column-gap: 5px;
-        -webkit-column-count: 3;
-        -webkit-column-gap: 5px;
-        column-count: 3;
-        column-gap: 5px;
-        column-fill: balance;
-    }
-}
-@page {
-    margin: 6mm;
-}
-@media screen and (min-width:1200px) {
-    .multi-col {
-        -moz-column-count: 4;
-        -moz-column-gap: 10px;
-        -webkit-column-count: 4;
-        -webkit-column-gap: 10px;
-        column-count: 4;
-        column-gap: 10px;
-        column-fill: balance;
-    }
-}
-@media screen and (min-width:900px) and (max-width:1199) {
-    .multi-col {
-        -moz-column-count: 3;
-        -moz-column-gap: 10px;
-        -webkit-column-count: 3;
-        -webkit-column-gap: 10px;
-        column-count: 3;
-        column-gap: 10px;
-        column-fill: balance;
-    }
-}
-@media screen and (min-width:600px) and (max-width:899px) {
-    .multi-col {
-        -moz-column-count: 2;
-        -moz-column-gap: 10px;
-        -webkit-column-count: 2;
-        -webkit-column-gap: 10px;
-        column-count: 2;
-        column-gap: 10px;
-        column-fill: balance;
-    }
-}
-@media screen and (max-width:300px) {
-    .multi-col {
-        -moz-column-count: 1;
-        -moz-column-gap: 10px;
-        -webkit-column-count: 1;
-        -webkit-column-gap: 10px;
-        column-count: 1;
-        column-gap: 10px;
-        column-fill: balance;
-    }
-}
-div {
-    margin: 0px;
-    padding: 0px;
-}
-p {
-    break-after: always;
-    margin: 2px 0;
-    line-height: 100%;
-}
-p + p {
-    margin-top: 0px;
-}
-i {
-    color: #888;
-}
-code pre {
-    font-size: 75%;
-    margin: 2px 0;
-    white-space: pre-wrap;
-}
-code pre::first-line {
-    font-weight: bold;
-}
-input[type='checkbox'] {
-    width: 20px;
-    height: 20px;
-    border-radius: 4px;
-}
-#selector {
-    border: 1px solid #000000;
-    border-radius: 5px;
-    background: rgba(200,200,200, .5);
-}
-#selector h2 {
-    color: #880088;
-}
-#grammar {
-    line-break: strict;
-    word-break: break-all;
-}
-.definitions b {
-    font-size: 80%;
-    line-heigth: 90%;
-}
-.definitions p {
-    font-size: 60%;
-}
-.sec-lexical-grammar b {
-    color: #00cc00;
-}
-.sec-expressions b {
-    color: #cc0000;
-}
-.sec-statements b {
-    color: #0000cc;
-}
-.sec-functions-and-classes b {
-    color: #888800;
-}
-.sec-scripts-and-modules b {
-    color: #880088;
-}
-.sec-number-conversions b {
-    color: #008888;
-}
-.sec-universal-resource-identifier-character-classes b {
-    color: #4444cc;
-}
-.sec-regular-expressions b {
-    color: #44cc44;
-}
+${fetchSpecStyle()}
 </style>
 <link rel="icon" href="es-favicon.ico" type="image/x-icon"/>
 </head><body>
@@ -356,7 +234,7 @@ fetchSpec().then(function(content) {
         let favicon_in  = fs.createReadStream(__dirname + "/../res/es-favicon.ico");
         let favicon_out = fs.createWriteStream(SPEC_CACHE + "es-favicon.ico");
         favicon_in.pipe(favicon_out);
-        fs.writeFileSync(SPEC_CACHE + "output.html", htmlGen(grammar));
+        fs.writeFileSync(SPEC_CACHE_HTML, htmlGen(grammar));
     } catch (e) {
         console.log(e);
     } finally {

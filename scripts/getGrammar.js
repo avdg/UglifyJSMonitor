@@ -1,76 +1,15 @@
-/* jslint esversion: 6 */
+'use strict';
 
-let fs = require("fs");
-let http = require("http");
-let https = require("https");
-let path = require("path");
-let url = require("url");
+const fs = require("fs");
+const htmlparser = require("htmlparser2");
 
-let htmlparser = require("htmlparser2");
+const scraper = require('../lib/scraper.js');
 
 const SPEC_URL = "https://raw.githubusercontent.com/tc39/ecma262/master/spec.html";
 const SPEC_CACHE = "build/spec/";
 
-let fetchContent = function(options) {
-    if (typeof options !== "object") {
-        throw Error("No options given");
-    }
-    if (typeof options.url !== "string") {
-        throw Error("No url set");
-    } else {
-        options.url = url.parse(options.url);
-    }
-    if (typeof options.cache === "string" && typeof options.data !== "string") {
-        options.data = options.cache + ".data";
-    }
-    return new Promise(function(done, err) {
-        if (typeof options.cache === "string") {
-            try {
-                let stats = fs.statSync(options.data);
-                if (stats.isFile()) {
-                    options.status = JSON.parse(
-                        fs.readFileSync(options.data, {encoding: "utf8"})
-                    );
-                }
-                if (options.status.etag) {
-                    options.url.headers = {"If-None-Match": options.status.etag};
-                }
-            } catch (e) {
-                // Ignore
-            }
-        }
-        let content = "";
-        let req = (options.url.protocol.match("^https") ? https : http).get(options.url, (res) => {
-            res.on("data", (chunk) => {
-                content += chunk;
-            });
-            res.on("end", () => {
-                if (res.statusCode === 304) {
-                    content = fs.readFileSync(options.cache, {encoding: "utf8"});
-                } else if (typeof options.cache === "string" && res.headers.etag) {
-                    let cacheDir = path.dirname(options.cache);
-                    let dataDir = path.dirname(options.data);
-                    let tmp;
-                    try { if (!fs.statSync(cacheDir).isDirectory()) throw Error(); }
-                        catch (e) { fs.mkdirSync(cacheDir); }
-                    try { if (!fs.statSync(dataDir).isDirectory()) throw Error(); }
-                        catch (e) { fs.mkdirSync(dataDir); }
-                    fs.writeFileSync(options.cache, content);
-                    fs.writeFileSync(options.data, JSON.stringify({
-                        etag: res.headers.etag
-                    }));
-                }
-                done(content);
-            });
-            res.on("error", (e) => {
-                err(e);
-            });
-        });
-    });
-};
-
 let fetchSpec = function() {
-    return fetchContent({
+    return scraper.fetchContent({
         url: SPEC_URL,
         cache: SPEC_CACHE + "ecma262.html"
     });
@@ -195,7 +134,7 @@ let fetchGrammar = function(html) {
         return obj.children[0].data.match(def + "(?:\\[[a-zA-Z,?+~ ]+\\])?\\s*:\\n?(?:[^\\n]+\\n)*\\n?");
     };
     let grammarFormatter = (def, arr) => {
-        results = [];
+        let results = [];
         for (let i = 0; i < arr.length; i++) {
             for (let j = 0; j < arr[i].length; j++) {
                 if (typeof arr[i][j] === "string") {

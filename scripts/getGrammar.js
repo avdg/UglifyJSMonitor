@@ -180,6 +180,22 @@ const fetchGrammar = (html) => {
     return definitions;
 };
 
+const htmlGrammarContent = (grammar) => {
+    let content = '';
+    for (let i in grammar) {
+        content += '<div class="' + grammar[i].type + ' definitions"><b>' + grammar[i].definition + "</b><br>";
+        for (let j in grammar[i].rules) {
+            content += "<code><pre>" + grammar[i].rules[j].replace(/\n/g, "<br>&emsp;").replace(/``/g, "` `").replace(/[a-zA-Z]+(?:\[([?+~][a-zA-Z]+(, )?)+\])?\?/g, "<i>$&</i>") + "</pre></code>";
+        }
+        for (let j in grammar[i].notes) {
+            content += "<p>" + grammar[i].notes[j] + "</p>";
+        }
+        content += "</div>";
+    }
+
+    return content;
+}
+
 const htmlGen = (grammar) => {
     let content = `<!DOCTYPE html>
 <html lang="en">
@@ -202,20 +218,11 @@ ${fetchSpecStyle()}
 <input type="checkbox" id="select-universal-resource-identifier-character-classes" checked><a href="#">Universal resource identifier character classes</a><br>
 <input type="checkbox" id="select-regular-expressions" checked><a href="#">Regular expressions</a><br>
 </div>
-<div class="multi-col" id="grammar">`;
+<div class="multi-col" id="grammar">
+${htmlGrammarContent(grammar)}
+</div><script>
+`;
 
-    for (let i in grammar) {
-        content += '<div class="' + grammar[i].type + ' definitions"><b>' + grammar[i].definition + "</b><br>";
-        for (let j in grammar[i].rules) {
-            content += "<code><pre>" + grammar[i].rules[j].replace(/\n/g, "<br>&emsp;").replace(/``/g, "` `").replace(/[a-zA-Z]+(?:\[([?+~][a-zA-Z]+(, )?)+\])?\?/g, "<i>$&</i>") + "</pre></code>";
-        }
-        for (let j in grammar[i].notes) {
-            content += "<p>" + grammar[i].notes[j] + "</p>";
-        }
-        content += "</div>";
-    }
-
-    content += "\n</div><script>";
     content += `{let tmp=document.querySelectorAll("#selector input");`;
     content += `for(let i in tmp)if(tmp[i].type==="checkbox"&&tmp[i].id.substr(0,7)==="select-")tmp[i].onchange=function(){`;
     content +=     `let elem="sec-"+this.id.substr(7),visible=this.checked,nodes=document.querySelectorAll("div ." + elem);`;
@@ -226,6 +233,7 @@ ${fetchSpecStyle()}
     content +=     `for(let j=0;j<links.length;j++){let prev=links[j].previousElementSibling;prev.checked=prev.id===name;prev.onchange()}`;
     content += `}}}`;
     content += "</script></body></html>";
+
     return content;
 };
 
